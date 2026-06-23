@@ -1,0 +1,2577 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HairOS Studio — Simulador Profissional de Cabelos</title>
+
+<!-- MediaPipe FaceMesh via CDN (open source, não é API paga) -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+
+<style>
+/* =========================================================
+   HAIR OS STUDIO — TEMA PREMIUM ESCURO
+   ========================================================= */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-0: #090909;
+  --bg-1: #151515;
+  --bg-2: #1d1d1d;
+  --bg-3: #262626;
+  --fg: #ffffff;
+  --fg-dim: #888888;
+  --fg-mute: #555555;
+  --accent: #e8e8e8;
+  --accent-soft: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.16);
+  --radius: 20px;
+  --radius-sm: 12px;
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.5);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.4);
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg-0);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background:
+    radial-gradient(1200px 800px at 10% -10%, rgba(80,80,120,0.12), transparent 60%),
+    radial-gradient(1000px 700px at 110% 110%, rgba(120,80,140,0.10), transparent 60%),
+    var(--bg-0);
+}
+
+/* ---------- LAYOUT ---------- */
+.app {
+  display: grid;
+  grid-template-rows: 56px 1fr;
+  height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: rgba(21,21,21,0.7);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-bottom: 1px solid var(--border);
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.brand-logo {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #fff, #888);
+  display: grid; place-items: center;
+  color: #111;
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(255,255,255,0.1);
+}
+.brand-name { font-size: 15px; }
+.brand-tag { color: var(--fg-dim); font-weight: 400; margin-left: 4px; font-size: 12px; }
+
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+.main {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .sidebar { max-height: 45vh; }
+}
+
+/* ---------- SIDEBAR ---------- */
+.sidebar {
+  background: rgba(21,21,21,0.6);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.sidebar::-webkit-scrollbar { width: 8px; }
+.sidebar::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
+
+.panel {
+  background: linear-gradient(180deg, rgba(38,38,38,0.6), rgba(29,29,29,0.4));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: var(--shadow-md);
+}
+
+.panel-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--fg-dim);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-title .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 8px #4ade80;
+}
+
+/* ---------- UPLOAD ---------- */
+.dropzone {
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 24px 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  background: rgba(255,255,255,0.02);
+}
+.dropzone:hover, .dropzone.drag {
+  border-color: #fff;
+  background: rgba(255,255,255,0.05);
+  transform: translateY(-1px);
+}
+.dropzone-icon {
+  width: 44px; height: 44px;
+  margin: 0 auto 10px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  display: grid; place-items: center;
+  border: 1px solid var(--border-strong);
+}
+.dropzone-icon svg { width: 22px; height: 22px; stroke: #ddd; }
+.dropzone-title { font-weight: 600; margin-bottom: 4px; }
+.dropzone-sub { color: var(--fg-dim); font-size: 12px; }
+
+.preview-wrap {
+  margin-top: 12px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 1/1;
+  display: grid; place-items: center;
+  border: 1px solid var(--border);
+  position: relative;
+}
+.preview-wrap img { width: 100%; height: 100%; object-fit: contain; }
+.preview-empty { color: var(--fg-mute); font-size: 12px; }
+
+.status-list {
+  margin-top: 12px;
+  display: flex; flex-direction: column; gap: 6px;
+  font-size: 12px;
+}
+.status-item {
+  display: flex; align-items: center; gap: 8px;
+  color: var(--fg-mute);
+  transition: var(--transition);
+}
+.status-item.ok { color: #4ade80; }
+.status-item.warn { color: #fbbf24; }
+.status-item.err { color: #f87171; }
+.status-check {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1.5px solid currentColor;
+  display: grid; place-items: center;
+  font-size: 9px;
+}
+.status-item.ok .status-check::after { content: "✓"; }
+
+/* ---------- CATEGORIES ---------- */
+.tabs {
+  display: flex;
+  gap: 6px;
+  background: rgba(0,0,0,0.3);
+  padding: 4px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+}
+.tab {
+  flex: 1;
+  padding: 8px 10px;
+  text-align: center;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--fg-dim);
+  transition: var(--transition);
+  user-select: none;
+}
+.tab.active {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.hair-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.hair-card {
+  background: linear-gradient(180deg, #1f1f1f, #151515);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hair-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+}
+.hair-card.selected {
+  border-color: #fff;
+  background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+  box-shadow: 0 0 0 1px #fff, var(--shadow-md);
+}
+.hair-thumb {
+  width: 100%;
+  aspect-ratio: 1/1;
+  border-radius: 8px;
+  background: #0a0a0a;
+  margin-bottom: 6px;
+  overflow: hidden;
+  display: grid; place-items: center;
+}
+.hair-thumb canvas { width: 100%; height: 100%; display: block; }
+.hair-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: #ddd;
+}
+
+/* ---------- CONTROLS ---------- */
+.control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.control-row label {
+  font-size: 12px;
+  color: var(--fg-dim);
+  min-width: 70px;
+}
+.control-row .value {
+  font-size: 11px;
+  color: var(--fg-mute);
+  min-width: 36px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: #2a2a2a;
+  border-radius: 2px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  transition: transform 0.15s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: #ddd;
+  padding: 9px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  font-family: inherit;
+}
+.btn:hover { background: rgba(255,255,255,0.1); border-color: var(--border-strong); }
+.btn.primary {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
+.btn.primary:hover { background: #eee; }
+.btn.ghost { background: transparent; }
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 6px;
+  margin-top: 6px;
+}
+.color-swatch {
+  aspect-ratio: 1/1;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: var(--transition);
+  position: relative;
+}
+.color-swatch:hover { transform: scale(1.1); }
+.color-swatch.active { border-color: #fff; box-shadow: 0 0 0 2px #000, 0 0 0 4px #fff; }
+
+/* ---------- CANVAS AREA ---------- */
+.canvas-area {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(45deg, #0f0f0f 25%, transparent 25%),
+    linear-gradient(-45deg, #0f0f0f 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #0f0f0f 75%),
+    linear-gradient(-45deg, transparent 75%, #0f0f0f 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+  background-color: #0a0a0a;
+}
+
+.canvas-stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  cursor: grab;
+}
+.canvas-stage.dragging { cursor: grabbing; }
+
+.canvas-container {
+  position: relative;
+  transform-origin: center center;
+  transition: transform 0.1s ease-out;
+  box-shadow: var(--shadow-lg);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+}
+.canvas-container canvas {
+  display: block;
+  position: absolute;
+  inset: 0;
+}
+
+/* ---------- COMPARE SLIDER ---------- */
+.compare-slider {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 3px;
+  background: #fff;
+  cursor: ew-resize;
+  z-index: 5;
+  box-shadow: 0 0 12px rgba(0,0,0,0.6);
+  display: none;
+}
+.compare-slider::before, .compare-slider::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+.compare-slider::before { top: 50%; margin-top: -16px; }
+.compare-slider::after { display: none; }
+.compare-label {
+  position: absolute;
+  top: 12px;
+  padding: 4px 10px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  z-index: 6;
+  pointer-events: none;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+.compare-label.before { left: 12px; }
+.compare-label.after { right: 12px; }
+
+/* ---------- TOOLBAR ---------- */
+.toolbar {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  background: rgba(21,21,21,0.8);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  z-index: 4;
+}
+.tool-btn {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  color: #ddd;
+  cursor: pointer;
+  display: grid; place-items: center;
+  transition: var(--transition);
+  position: relative;
+}
+.tool-btn:hover { background: rgba(255,255,255,0.08); }
+.tool-btn.active { background: #fff; color: #000; }
+.tool-btn svg { width: 18px; height: 18px; }
+.tool-sep { width: 1px; background: var(--border-strong); margin: 4px 2px; }
+
+.zoom-label {
+  padding: 0 10px;
+  display: flex; align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- EMPTY STATE ---------- */
+.empty-state {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  pointer-events: none;
+  z-index: 2;
+}
+.empty-state.hidden { display: none; }
+.empty-icon {
+  width: 80px; height: 80px;
+  margin: 0 auto 16px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  display: grid; place-items: center;
+  border: 1px solid var(--border-strong);
+}
+.empty-icon svg { width: 36px; height: 36px; stroke: #666; }
+.empty-title { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+.empty-sub { color: var(--fg-dim); font-size: 13px; max-width: 320px; margin: 0 auto; line-height: 1.5; }
+
+/* ---------- LOADING ---------- */
+.loader {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  display: grid; place-items: center;
+  z-index: 20;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.loader.active { opacity: 1; pointer-events: auto; }
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- TOAST ---------- */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  padding: 12px 20px;
+  background: rgba(21,21,21,0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  font-size: 13px;
+  color: #fff;
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ---------- SCROLLBAR ---------- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 600px) {
+  .topbar { padding: 0 12px; }
+  .brand-tag { display: none; }
+  .sidebar { padding: 12px; }
+  .hair-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .hair-name { font-size: 10px; }
+  .toolbar { bottom: 10px; padding: 4px; gap: 4px; }
+  .tool-btn { width: 36px; height: 36px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ============ TOPBAR ============ -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-logo">H</div>
+      <div>
+        <div class="brand-name">HairOS Studio<span class="brand-tag">· Professional Hair Simulator</span></div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn ghost" id="btnResetAll" title="Resetar tudo">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        Resetar
+      </button>
+      <button class="btn primary" id="btnDownload">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Baixar PNG
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <!-- ---------- SIDEBAR ---------- -->
+    <aside class="sidebar">
+
+      <!-- UPLOAD -->
+      <div class="panel">
+        <div class="panel-title">
+          <span>Foto</span>
+          <span class="dot"></span>
+        </div>
+        <div class="dropzone" id="dropzone">
+          <div class="dropzone-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="dropzone-title">Enviar foto</div>
+          <div class="dropzone-sub">Clique ou arraste uma imagem</div>
+          <input type="file" id="fileInput" accept="image/*" hidden>
+        </div>
+        <div class="preview-wrap" id="previewWrap">
+          <div class="preview-empty">Sem imagem</div>
+        </div>
+        <div class="status-list" id="statusList">
+          <div class="status-item" data-status="photo"><span class="status-check"></span> Foto carregada</div>
+          <div class="status-item" data-status="face"><span class="status-check"></span> Rosto detectado</div>
+          <div class="status-item" data-status="hair"><span class="status-check"></span> Cabelo aplicado</div>
+        </div>
+      </div>
+
+      <!-- HAIRSTYLES -->
+      <div class="panel">
+        <div class="panel-title"><span>Penteados</span></div>
+        <div class="tabs">
+          <div class="tab active" data-cat="masculino">Masculino</div>
+          <div class="tab" data-cat="feminino">Feminino</div>
+        </div>
+        <div class="hair-grid" id="hairGrid"></div>
+      </div>
+
+      <!-- CONTROLS -->
+      <div class="panel">
+        <div class="panel-title"><span>Ajustes</span></div>
+
+        <div class="control-row">
+          <label>Escala</label>
+          <input type="range" id="ctrlScale" min="0.5" max="2" step="0.01" value="1">
+          <span class="value" id="valScale">1.00</span>
+        </div>
+        <div class="control-row">
+          <label>Rotação</label>
+          <input type="range" id="ctrlRot" min="-45" max="45" step="0.5" value="0">
+          <span class="value" id="valRot">0°</span>
+        </div>
+        <div class="control-row">
+          <label>Pos X</label>
+          <input type="range" id="ctrlX" min="-200" max="200" step="1" value="0">
+          <span class="value" id="valX">0</span>
+        </div>
+        <div class="control-row">
+          <label>Pos Y</label>
+          <input type="range" id="ctrlY" min="-200" max="200" step="1" value="0">
+          <span class="value" id="valY">0</span>
+        </div>
+        <div class="control-row">
+          <label>Altura</label>
+          <input type="range" id="ctrlH" min="0.5" max="2" step="0.01" value="1">
+          <span class="value" id="valH">1.00</span>
+        </div>
+        <div class="control-row">
+          <label>Largura</label>
+          <input type="range" id="ctrlW" min="0.5" max="2" step="0.01" value="1">
+          <span class="value" id="valW">1.00</span>
+        </div>
+        <div class="control-row">
+          <label>Opacidade</label>
+          <input type="range" id="ctrlOpacity" min="0" max="1" step="0.01" value="1">
+          <span class="value" id="valOpacity">1.00</span>
+        </div>
+        <div class="control-row">
+          <label>Brilho</label>
+          <input type="range" id="ctrlBright" min="-50" max="50" step="1" value="0">
+          <span class="value" id="valBright">0</span>
+        </div>
+        <div class="control-row">
+          <label>Contraste</label>
+          <input type="range" id="ctrlContrast" min="-50" max="50" step="1" value="0">
+          <span class="value" id="valContrast">0</span>
+        </div>
+        <div class="control-row">
+          <label>Sombra</label>
+          <input type="range" id="ctrlShadow" min="0" max="30" step="1" value="8">
+          <span class="value" id="valShadow">8</span>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn" id="btnCenter">Centralizar</button>
+          <button class="btn" id="btnReset">Resetar</button>
+          <button class="btn" id="btnMirror">Espelhar</button>
+        </div>
+      </div>
+
+      <!-- COLOR -->
+      <div class="panel">
+        <div class="panel-title"><span>Coloração</span></div>
+        <div class="color-grid" id="colorGrid"></div>
+      </div>
+
+    </aside>
+
+    <!-- ---------- CANVAS AREA ---------- -->
+    <div class="canvas-area">
+      <div class="canvas-stage" id="canvasStage">
+        <div class="canvas-container" id="canvasContainer">
+          <canvas id="layer0"></canvas>
+          <canvas id="layer1"></canvas>
+          <canvas id="layer2"></canvas>
+          <canvas id="layer3"></canvas>
+          <canvas id="layer4"></canvas>
+          <canvas id="layerCompare" style="display:none;"></canvas>
+        </div>
+      </div>
+
+      <div class="empty-state" id="emptyState">
+        <div>
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="empty-title">Envie uma foto para começar</div>
+          <div class="empty-sub">Use uma foto de rosto frontal, bem iluminada, para melhores resultados na detecção facial.</div>
+        </div>
+      </div>
+
+      <div class="compare-slider" id="compareSlider">
+        <div class="compare-label before">ANTES</div>
+        <div class="compare-label after">DEPOIS</div>
+      </div>
+
+      <div class="toolbar">
+        <button class="tool-btn" id="toolZoomOut" title="Diminuir zoom">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        </button>
+        <div class="zoom-label" id="zoomLabel">100%</div>
+        <button class="tool-btn" id="toolZoomIn" title="Aumentar zoom">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        </button>
+        <div class="tool-sep"></div>
+        <button class="tool-btn" id="toolFit" title="Ajustar à tela">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        </button>
+        <button class="tool-btn" id="toolCompare" title="Comparar antes/depois">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+        </button>
+      </div>
+
+      <div class="loader" id="loader"><div class="spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   HAIR OS STUDIO — CORE ENGINE
+   =========================================================
+   Arquitetura modular em camadas:
+   - layer0: foto original
+   - layer1: máscara (remoção do cabelo original)
+   - layer2: cabelo renderizado
+   - layer3: sombras / luz
+   - layer4: efeitos finais
+   ========================================================= */
+
+/* ---------- ESTADO GLOBAL ---------- */
+const APP = {
+  image: null,             // HTMLImageElement original
+  imageW: 0, imageH: 0,
+  faceMesh: null,
+  faceReady: false,
+  landmarks: null,         // 468 pontos
+  head: null,              // dados calculados da cabeça
+  skinColor: null,         // cor de pele amostrada
+  hairMask: null,          // canvas com máscara
+  selectedHair: null,
+  selectedCategory: 'masculino',
+  selectedColor: '#2a1810',
+  controls: {
+    scale: 1, rot: 0, x: 0, y: 0, h: 1, w: 1,
+    opacity: 1, bright: 0, contrast: 0, shadow: 8,
+    mirror: false
+  },
+  zoom: 1, panX: 0, panY: 0,
+  compareMode: false,
+  comparePos: 0.5,
+  isDragging: false, dragStart: null, panStart: null
+};
+
+/* ---------- UTILITÁRIOS ---------- */
+const $ = (id) => document.getElementById(id);
+const showToast = (msg) => {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2400);
+};
+const setStatus = (key, state) => {
+  const el = document.querySelector(`[data-status="${key}"]`);
+  if (!el) return;
+  el.classList.remove('ok', 'warn', 'err');
+  if (state) el.classList.add(state);
+};
+const showLoader = (on) => $('loader').classList.toggle('active', on);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ---------- BIBLIOTECA DE PENTEADOS ----------
+   Cada penteado é desenhado proceduralmente via Canvas 2D.
+   Função draw(ctx, bounds, color) recebe:
+   - ctx: contexto do canvas de destino
+   - bounds: {cx, cy, w, h, angle} — retângulo e rotação da área do cabelo
+   - color: cor base do cabelo (hex)
+*/
+const HAIRSTYLES = [
+  /* ===== MASCULINO ===== */
+  {
+    id: 'degrade', nome: 'Degradê', categoria: 'masculino',
+    draw: (ctx, b, color) => {
+      const { cx, cy, w, h, angle } = b;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.scale(w / 200, h / 200);
+
+      // Camada base — topo volumoso
+      const grad1 = ctx.createLinearGradient(0, -100, 0, 40);
+      grad1.addColorStop(0, color);
+      grad1.addColorStop(1, shade(color, -30));
+      ctx.fillStyle = grad1;
+      ctx.beginPath();
+      ctx.moveTo(-90, 20);
+      ctx.bezierCurveTo(-100, -60, -60, -110, 0, -115);
+      ctx.bezierCurveTo(60, -110, 100, -60, 90, 20);
+      ctx.bezierCurveTo(70, 10, 40, 5, 0, 5);
+      ctx.bezierCurveTo(-40, 5, -70, 10, -90, 20);
+      ctx.closePath();
+      ctx.fill();
+
+      // Degradê lateral — fade escuro
+      const grad2 = ctx.createLinearGradient(0, 0, 0, 60);
+      grad2.addColorStop(0, shade(color, -20));
+      grad2.addColorStop(1, shade(color, -60));
+      ctx.fillStyle = grad2;
+      ctx.beginPath();
+      ctx.moveTo(-95, 10);
+      ctx.bezierCurveTo(-100, 40, -85, 65, -60, 70);
+      ctx.lineTo(-60, 10);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(95, 10);
+      ctx.bezierCurveTo(100, 40, 85, 65, 60, 70);
+      ctx.lineTo(60, 10);
+      ctx.closePath();
+      ctx.fill();
+
+      // Textura de fios no topo
+      ctx.strokeStyle = shade(color, 20);
+      ctx.lineWidth = 0.8;
+      ctx.globalAlpha = 0.4;
+      for (let i = -70; i < 70; i += 6) {
+        ctx.beginPath();
+        ctx.moveTo(i, -100);
+        ctx.bezierCurveTo(i + 2, -70, i - 2, -40, i, -10);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Brilho superior
+      const shine = ctx.createRadialGradient(-20, -80, 5, -20, -80, 60);
+      shine.addColorStop(0, 'rgba(255,255,255,0.25)');
+      shine.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = shine;
+      ctx.fill();
+
+      ctx.restore();
+    }
+  },
+  {
+    id: 'undercut', nome: 'Undercut', categoria: 'masculino',
+    draw: (ctx, b, color) => {
+      const { cx, cy, w, h, angle } = b;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.scale(w / 200, h / 200);
+
+      // Lateral raspada
+      const fade = ctx.createLinearGradient(0, 0, 0, 60);
+      fade.addColorStop(0, shade(color, -40));
+      fade.addColorStop(1, shade(color, -70));
+      ctx.fillStyle = fade;
+      ctx.beginPath();
+      ctx.moveTo(-95, 0);
+      ctx.bezierCurveTo(-100, 40, -80, 70, -55, 75);
+      ctx.lineTo(-55, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(95, 0);
+      ctx.bezierCurveTo(100, 40, 80, 70, 55, 75);
+      ctx.lineTo(55, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      // Topo longo jogado para trás
+      const grad = ctx.createLinearGradient(0, -120, 0, 0);
+      grad.addColorStop(0, shade(color, 10));
+      grad.addColorStop(1, color);
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(-70, 0);
+      ctx.bezierCurveTo(-80, -70, -40, -125, 0, -130);
+      ctx.bezierCurveTo(40, -125, 80, -70, 70, 0);
+      ctx.bezierCurveTo(40, -10, -40, -10, -70, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      // Fios longos
+      ctx.strokeStyle = shade(color, 15);
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.5;
+      for (let i = -55; i < 55; i += 5) {
+        ctx.beginPath();
+        ctx.moveTo(i, -120);
+        ctx.bezierCurveTo(i + 5, -80, i - 3, -40, i + 2, -5);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Brilho
+      const shine = ctx.createRadialGradient(0, -90, 10, 0, -90, 70);
+      shine.addColorStop(0, 'rgba(255,255,255,0.3)');
+      shine.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = shine;
+      ctx.beginPath();
+      ctx.moveTo(-70, 0);
+      ctx.bezierCurveTo(-80, -70, -40, -125, 0, -130);
+      ctx.bezierCurveTo(40, -125, 80, -70, 70, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+  },
+  {
+    id: 'pompadour', nome: 'Pompadour', categoria: 'masculino',
+    draw: (ctx, b, color) => {
+      const { cx, cy, w, h, angle } = b;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.scale(w / 200, h / 200);
+
+      // Volume frontal alto
+      const grad = ctx.createLinearGradient(0, -160, 0, 0);
+      grad.addColorStop(0, shade(color, 15));
+      grad.addColorStop(0.6, color);
+      grad.addColorStop(1, shade(color, -25));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(-80, 20);
+      ctx.bezierCurveTo(-95, -40, -70, -130, -20, -155);
+      ctx.bezierCurveTo(30, -165, 80, -130, 85, -40);
+      ctx.bezierCurveTo(90, 10, 70, 30, 50, 30);
+      ctx.bezierCurveTo(20, 20, -20, 20, -50, 30);
+      ctx.bezierCurveTo(-70, 30, -80, 25, -80, 20);
+      ctx.closePath();
+      ctx.fill();
+
+      // Laterais
+      ctx.fillStyle = shade(color, -30);
+      ctx.beginPath();
+      ctx.moveTo(-85, 10);
+      ctx.bezierCurveTo(-95, 40, -80, 70, -55, 75);
+      ctx.lineTo(-55, 10);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(85, 10);
+      ctx.bezierCurveTo(95, 40, 80, 70, 55, 75);
+      ctx.lineTo(55, 10);
+      ctx.closePath();
+      ctx.fill();
+
+      // Ondulação frontal
+      ctx.strokeStyle = shade(color, 20);
+      ctx.lineWidth = 1.2;
+      ctx.globalAlpha = 0.5;
+      for (let i = -60; i < 60; i += 7) {
+        ctx.beginPath();
+        ctx.moveTo(i, -140);
+        ctx.bezierCurveTo(i - 10, -100, i + 10, -60, i, -20);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Brilho
+      const shine = ctx.createRadialGradient(-10, -120, 10, -10, -120, 80);
+      shine.addColorStop(0, 'rgba(255,255,255,0.35)');
+      shine.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = shine;
+      ctx.beginPath();
+      ctx.moveTo(-80, 20);
+      ctx.bezierCurveTo(-95, -40, -70, -130, -20, -155);
+      ctx.bezierCurveTo(30, -165, 80, -130, 85, -40);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+  },
+  {
+    id: 'buzzcut', nome: 'Buzzcut', categoria: 'masculino',
+    draw: (ctx, b, color) => {
+      const { cx, cy, w, h, angle } = b;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.scale(w / 200, h / 200);
+
+      // Camada muito rente seguindo o contorno da cabeça
+      const grad = ctx.createRadialGradient(0, -40, 20, 0, -40, 120);
+      grad.addColorStop(0, shade(color, 5));
+      grad.addColorStop(1, shade(color, -30));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(-85, 20);
+      ctx.bezierCurveTo(-95, -40, -70, -95, 0, -100);
+      ctx.bezierCurveTo(70, -95, 95, -40, 85, 20);
+      ctx.bezierCurveTo(60, 15, 30, 10, 0, 10);
+      ctx.bezierCurveTo(-30, 10, -60, 15, -85, 20);
+      ctx.closePath();
+      ctx.fill();
+
+      // Textura pontilhada (efeito máquina)
+      ctx.fillStyle = shade(color, -15);
+      ctx.globalAlpha = 0.3;
+      for (let i = 0; i < 400; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const r = Math.random() * 80;
+        const x = Math.cos(a) * r;
+        const y = -50 + Math.sin(a) * r * 0.7;
+        if (y < 15 && y > -100) {
+          ctx.beginPath();
+          ctx.arc(x, y, 0.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
+
+      // Brilho sutil
+      const shine = ctx.createRadialGradient(-20, -70, 5, -20, -70, 50);
+      shine.addColorStop(0, 'rgba(255,255,255,0.15)');
+      shine.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = shine;
+      ctx.beginPath();
+      ctx.moveTo(-85, 20);
+      ctx.bezierCurveTo(-95, -40, -70, -95, 0, -100);
+      ctx.bezierCurveTo(70, -95, 95, -40, 85, 20);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+  },
+  {
+    id: 'topknot', nome: 'Top Knot', categoria: 'masculino',
+    draw: (ctx, b, color) => {
+      const { cx, cy, w, h, angle } = b;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.scale(w / 200, h / 200);
+
+      // Laterais raspadas
+      ctx.fillStyle = shade(color, -50);
+      ctx.beginPath();
+      ctx.moveTo(-90, 10);
+      ctx.bezierCurveTo(-95, 40, -80, 70, -55, 75);
+      ctx.lineTo(-55, 10);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(90, 10);
+      ctx.bezierCurveTo(95, 40, 80, 70, 55, 75);
+      ctx.lineTo(55, 10);
+      ctx.closePath();
+      ctx.fill();
+
+      // Topo puxado para trás
+      const grad = ctx.createLinearGradient(0, -100, 0, 0);
+      grad.addColorStop(0, shade(color, 10));
+      grad.addColorStop(1, color);
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(-60, 5);
+      ctx.bezierCurveTo(-65, -50, -40, -95, 0, -100);
+      ctx.bezierCurveTo(40, -95, 65, -50, 60, 5);
+      ctx.closePath();
+      ctx.fill();
+
+      // Coque no topo
+      const knot = ctx.createRadialGradient(0, -130, 5, 0, -130, 35);
+      knot.addColorStop(0, shade(color, 15));
+      knot.addColorStop(1, shade(color, -20));
+      ctx.fillStyle = knot;
+      ctx.beginPath();
+      ctx.ellipse(0, -130, 28, 22, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Fios puxados
+      ctx.strokeStyle = shade(color, -10);
+      ctx.lineWidth = 0.8;
+      ctx.globalAlpha = 0.5;
+      for (let i = -50; i < 50; i += 5) {
+        ctx.beginPath();
+        ctx.moveTo(i, -10);
+        ctx.bezierCurveTo(i * 0.5, -60, i * 0.3, -100, 0, -125);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Brilho no coque
+      const shine = ctx.createRadialGradient(-8, -135, 3, -8, -135, 20);
+      shine.addColorStop(0, 'rgba(255,255,255,0.3)');
+      shine.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = shine;
+      ctx.beginPath();
+      ctx.ellipse(0, -130, 28, 22, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+  },
+  {
+    id: 'slickback', nome: 'Slick Back', categoria: 'masculino',
+    draw: (ctx, b, color) => {
+      const { cx, cy, w, h, angle } = b;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.scale(w / 200, h / 200);
+
+      // Base lisa puxada para trás
+      const grad = ctx.createLinearGradient(0, -110, 0, 20);
+      grad.addColorStop(0, shade(color, 15));
+      grad.addColorStop(0.5, color);
+      grad.addColorStop(1, shade(color, -25));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(-85, 20);
+      ctx.bezierCurveTo(-95, -40, -70, -105, 0, -110);
+      ctx.bezierCurveTo(70, -105, 95, -40, 85, 20);
+      ctx.bezierCurveTo(60, 15, 30, 10, 0, 10);
+      ctx.bezierCurveTo(-30, 10, -60, 15, -85, 20);
+      ctx.closePath();
+      ctx.fill();
+
+      // Linhas paralelas (efeito pente)
+      ctx.strokeStyle = shade(color, -20);
+      ctx.lineWidth = 0.6;
+      ctx.globalAlpha = 0.4;
+      for (let i = -75; i < 75; i += 4) {
+        ctx.beginPath();
+        ctx.moveTo(i, -100);
+        ctx.bezierCurveTo(i * 0.9, -50, i * 0.85, 0, i * 0.8, 15);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Brilho molhado
+      const shine = ctx.createLinearGradient(-40, -90, 40, -90);
+      shine.addColorStop(0, 'rgba(255,255,255,0)');
+      shine.addColorStop(0.5, 'rgba(255,255,255,0.35)');
+      shine.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = shine;
+      ctx.beginPath();
+      ctx.moveTo(-85, 20);
+      ctx.bezierCurveTo(-95, -40, -70, -105, 0, -110);
+      ctx.bezierCurveTo(70, -105, 95, -40, 85, 20);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+  },
+
+  /* ===== FEMININO ===== */
+  {
+    id: 'bob', nome: 'Bob', categoria: 'feminino',
+    draw: (ctx, b, color) => {
+      const { cx, cy, w, h, angle } = b;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.scale(w / 200, h / 200);
+
+      // Bob clássico — corte reto na altura do queixo
+      const grad = ctx.createLinearGradient(0, -120, 0, 80);
+      grad.addColorStop(0, shade(color, 10));
+      grad1: grad.addColorStop(0.5, color);
+      grad.addColorStop(1, shade(color, -20));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(-100, 30);
+      ctx.bezierCurveTo(-110, -40, -80, -110, 0, -115);
+      ctx.bezierCurveTo(80, -110, 110, -40, 100, 30);
+      ctx.bezierCurveTo(95, 60, 80, 75, 60, 78);
+      ctx.bezierCurveTo(30, 80, -30, 80, -60, 78);
+      ctx.bezierCurveTo(-80, 75, -95, 60, -100, 30);
+      ctx.closePath();
+      ctx.fill();
+
+      // Franja lateral
+      ctx.fillStyle = shade(color, 5);
+      ctx.beginPath();
+      ctx.moveTo(-70, -60);
+      ctx.bezierCurveTo(-40, -90, 20, -95, 60, -70);
+      ctx.bezierCurveTo(40, -50, 0, -45, -40, -50);
+      ctx.bezierCurveTo(-55, -52, -65, -55, -70, -60);
+      ctx.closePath();
+      ctx.fill();
+
+      // Fios longos verticais
+      ctx.strokeStyle = shade(color, 15);
+      ctx.lineWidth = 0.7;
+      ctx.globalAlpha = 0.35;
+      for (let i = -90; i < 90; i += 5) {
+        ctx.beginPath();
+        ctx.moveTo(i, -100);
+        ctx.bezierCurveTo(i + 2, -40, i - 2, 20, i, 70);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Brilho
+      const shine = ctx.createLinearGradient(-50, -80, 50, -80);
+      shine.addColorStop(0, 'rgba(255,255,255,0)');
+      shine.addColorStop(0.5, 'rgba(255,255,255,0.25)');
+      shine.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = shine;
+      ctx.beginPath();
+      ctx.moveTo(-100, 30);
+      ctx.bezierCurveTo(-110, -40, -80, -110, 0, -115);
+      ctx.bezierCurveTo(80, -110, 110, -40, 100, 30);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+  },
+  {
+    id: 'chanel', nome: 'Chanel', categoria: 'feminino',
+    draw: (ctx, b, color) => {
+      const { cx, cy, w, h, angle } = b;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.scale(w / 200, h / 200);
+
+      // Chanel — mais curto que o bob, franja reta
+      const grad = ctx.createLinearGradient(0, -110, 0, 60);
+      grad.addColorStop(0, shade(color, 12));
+      grad.addColorStop(1, shade(color, -18));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(-95, 20);
+      ctx.bezierCurveTo(-105, -35, -75, -105, 0, -110);
+      ctx.bezierCurveTo(75, -105, 105, -35, 95, 20);
+      ctx.bezierCurveTo(90, 45, 75, 58, 55, 60);
+      ctx.bezierCurveTo(25, 62, -25, 62, -55, 60);
+      ctx.bezierCurveTo(-75, 58, -90, 45, -95, 20);
+      ctx.closePath();
+      ctx.fill();
+
+      // Franja reta
+      ctx.fillStyle = shade(color, 5);
+      ctx.beginPath();
+      ctx.moveTo(-65, -60);
+      ctx.bezierCurveTo(-40, -75, 40, -75, 65, -60);
+      ctx.bezierCurveTo(60, -45, 40, -40, 0, -42);
+      ctx.bezierCurveTo(-40, -40, -60, -45, -65, -60);
+      ctx.closePath();
+      ctx.fill();
+
+      // Fios
+      ctx.strokeStyle = shade(color, 15);
+      ctx.lineWidth = 0.6;
+      ctx.globalAlpha = 0.35;
+      for (let i = -85; i < 85; i += 5) {
+        ctx.beginPath();
+        ctx.moveTo(i, -95);
+        ctx.bezierCurveTo(i + 1, -40, i - 1, 0, i, 55);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Brilho
+      const shine = ctx.createRadialGradient(-15, -75, 5, -15, -75, 60);
+      shine.addColorStop(0, 'rgba(255,255,255,0.28)');
+      shine.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = shine;
+      ctx.beginPath();
+      ctx.moveTo(-95, 20);
+      ctx.bezierCurveTo(-105, -35, -75, -105, 0, -110);
+      ctx.bezierCurveTo(75, -105, 105, -35, 95, 20);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+  },
+  {
+    id: 'longo_liso', nome: 'Longo Liso', categoria: 'feminino',
+    draw: (ctx, b, color) => {
+      const { cx, cy, w, h, angle } = b;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.scale(w / 200, h / 200);
+
+      // Cabelo longo caindo
+      const grad = ctx.createLinearGradient(0, -130, 0, 150);
+      grad.addColorStop(0, shade(color, 10));
+      grad.addColorStop(0.5, color);
+      grad.addColorStop(1, shade(color, -25));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(-110, 120);
+      ctx.bezierCurveTo(-120, 0, -95, -100, 0, -125);
+      ctx.bezierCurveTo(95, -100, 120, 0, 110, 120);
+      ctx.bezierCurveTo(95, 130, 70, 135, 40, 130);
+      ctx.bezierCurveTo(20, 125, -20, 125, -40, 130);
+      ctx.bezierCurveTo(-70, 135, -95, 130, -110, 120);
+      ctx.closePath();
+      ctx.fill();
+
+      // Repartido ao meio
+      ctx.strokeStyle = shade(color, -30);
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(0, -125);
+      ctx.bezierCurveTo(-2, -100, 2, -80, 0, -60);
+      ctx.stroke();
+
+      // Fios longos
+      ctx.strokeStyle = shade(color, 18);
+      ctx.lineWidth = 0.6;
+      ctx.globalAlpha = 0.4;
+      for (let i = -100; i < 100; i += 4) {
+        ctx.beginPath();
+        ctx.moveTo(i, -115);
+        ctx.bezierCurveTo(i + 3, -40, i - 3, 40, i + 2, 125);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Brilho central
+      const shine = ctx.createLinearGradient(-30, -100, 30, -100);
+      shine.addColorStop(0, 'rgba(255,255,255,0)');
+      shine.addColorStop(0.5, 'rgba(255,255,255,0.22)');
+      shine.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = shine;
+      ctx.beginPath();
+      ctx.moveTo(-110, 120);
+      ctx.bezierCurveTo(-120, 0, -95, -100, 0, -125);
+      ctx.bezierCurveTo(95, -100, 120, 0, 110, 120);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+  },
+  {
+    id: 'ondulado', nome: 'Ondulado', categoria: 'feminino',
+    draw: (ctx, b, color) => {
+      const { cx, cy, w, h, angle } = b;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.scale(w / 200, h / 200);
+
+      // Base ondulada longa
+      const grad = ctx.createLinearGradient(0, -130, 0, 150);
+      grad.addColorStop(0, shade(color, 12));
+      grad.addColorStop(1, shade(color, -22));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(-115, 110);
+      ctx.bezierCurveTo(-125, 0, -100, -100, 0, -125);
+      ctx.bezierCurveTo(100, -100, 125, 0, 115, 110);
+      ctx.bezierCurveTo(100, 130, 70, 135, 40, 130);
+      ctx.bezierCurveTo(0, 125, -40, 130, -70, 130);
+      ctx.bezierCurveTo(-100, 130, -115, 120, -115, 110);
+      ctx.closePath();
+      ctx.fill();
+
+      // Ondas em S
+      ctx.strokeStyle = shade(color, -25);
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.5;
+      for (let i = -100; i < 100; i += 10) {
+        ctx.beginPath();
+        ctx.moveTo(i, -115);
+        for (let y = -115; y < 125; y += 20) {
+          const xOff = Math.sin((y + i) * 0.05) * 8;
+          ctx.lineTo(i + xOff, y);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Mechas claras
+      ctx.strokeStyle = shade(color, 25);
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.35;
+      for (let i = -90; i < 90; i += 15) {
+        ctx.beginPath();
+        ctx.moveTo(i, -110);
+        for (let y = -110; y < 120; y += 15) {
+          const xOff = Math.sin((y + i) * 0.05) * 6;
+          ctx.lineTo(i + xOff, y);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Brilho
+      const shine = ctx.createRadialGradient(-20, -80, 10, -20, -80, 70);
+      shine.addColorStop(0, 'rgba(255,255,255,0.25)');
+      shine.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = shine;
+      ctx.beginPath();
+      ctx.moveTo(-115, 110);
+      ctx.bezierCurveTo(-125, 0, -100, -100, 0, -125);
+      ctx.bezierCurveTo(100, -100, 125, 0, 115, 110);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+  },
+  {
+    id: 'cacheado', nome: 'Cacheado', categoria: 'feminino',
+    draw: (ctx, b, color) => {
+      const { cx, cy, w, h, angle } = b;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.scale(w / 200, h / 200);
+
+      // Base volumosa
+      const grad = ctx.createRadialGradient(0, -20, 30, 0, -20, 160);
+      grad.addColorStop(0, shade(color, 10));
+      grad.addColorStop(1, shade(color, -25));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.ellipse(0, -10, 125, 140, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cachos em espiral
+      const curlCount = 40;
+      for (let i = 0; i < curlCount; i++) {
+        const a = (i / curlCount) * Math.PI * 2;
+        const r = 60 + Math.random() * 50;
+        const cx2 = Math.cos(a) * r * 0.9;
+        const cy2 = -10 + Math.sin(a) * r * 1.1;
+        const size = 15 + Math.random() * 10;
+        const cGrad = ctx.createRadialGradient(cx2 - 3, cy2 - 3, 2, cx2, cy2, size);
+        cGrad.addColorStop(0, shade(color, 20));
+        cGrad.addColorStop(0.6, color);
+        cGrad.addColorStop(1, shade(color, -30));
+        ctx.fillStyle = cGrad;
+        ctx.beginPath();
+        ctx.arc(cx2, cy2, size, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Espiral interna
+        ctx.strokeStyle = shade(color, -20);
+        ctx.lineWidth = 0.8;
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath();
+        for (let t = 0; t < Math.PI * 3; t += 0.3) {
+          const sr = size * (1 - t / (Math.PI * 3)) * 0.7;
+          const sx = cx2 + Math.cos(t) * sr;
+          const sy = cy2 + Math.sin(t) * sr;
+          if (t === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+        }
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+
+      // Brilho geral
+      const shine = ctx.createRadialGradient(-30, -60, 10, -30, -60, 90);
+      shine.addColorStop(0, 'rgba(255,255,255,0.2)');
+      shine.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = shine;
+      ctx.beginPath();
+      ctx.ellipse(0, -10, 125, 140, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+  },
+  {
+    id: 'pixie', nome: 'Pixie', categoria: 'feminino',
+    draw: (ctx, b, color) => {
+      const { cx, cy, w, h, angle } = b;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.scale(w / 200, h / 200);
+
+      // Base curta
+      const grad = ctx.createLinearGradient(0, -100, 0, 30);
+      grad.addColorStop(0, shade(color, 10));
+      grad.addColorStop(1, shade(color, -20));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(-85, 15);
+      ctx.bezierCurveTo(-95, -30, -70, -90, 0, -95);
+      ctx.bezierCurveTo(70, -90, 95, -30, 85, 15);
+      ctx.bezierCurveTo(70, 25, 40, 30, 0, 28);
+      ctx.bezierCurveTo(-40, 30, -70, 25, -85, 15);
+      ctx.closePath();
+      ctx.fill();
+
+      // Franja lateral longa
+      ctx.fillStyle = shade(color, 5);
+      ctx.beginPath();
+      ctx.moveTo(-70, -50);
+      ctx.bezierCurveTo(-40, -85, 30, -90, 75, -55);
+      ctx.bezierCurveTo(60, -30, 20, -20, -20, -25);
+      ctx.bezierCurveTo(-45, -28, -65, -38, -70, -50);
+      ctx.closePath();
+      ctx.fill();
+
+      // Laterais curtas
+      ctx.fillStyle = shade(color, -25);
+      ctx.beginPath();
+      ctx.moveTo(-88, 5);
+      ctx.bezierCurveTo(-92, 25, -78, 45, -55, 50);
+      ctx.lineTo(-55, 5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(88, 5);
+      ctx.bezierCurveTo(92, 25, 78, 45, 55, 50);
+      ctx.lineTo(55, 5);
+      ctx.closePath();
+      ctx.fill();
+
+      // Fios texturizados
+      ctx.strokeStyle = shade(color, 18);
+      ctx.lineWidth = 0.7;
+      ctx.globalAlpha = 0.5;
+      for (let i = -60; i < 60; i += 5) {
+        ctx.beginPath();
+        ctx.moveTo(i, -85);
+        ctx.bezierCurveTo(i + 3, -50, i - 2, -20, i, 10);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Brilho
+      const shine = ctx.createRadialGradient(-10, -70, 5, -10, -70, 55);
+      shine.addColorStop(0, 'rgba(255,255,255,0.3)');
+      shine.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = shine;
+      ctx.beginPath();
+      ctx.moveTo(-70, -50);
+      ctx.bezierCurveTo(-40, -85, 30, -90, 75, -55);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+  },
+  {
+    id: 'franja', nome: 'Franja', categoria: 'feminino',
+    draw: (ctx, b, color) => {
+      const { cx, cy, w, h, angle } = b;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+      ctx.scale(w / 200, h / 200);
+
+      // Cabelo longo base
+      const grad = ctx.createLinearGradient(0, -130, 0, 150);
+      grad.addColorStop(0, shade(color, 10));
+      grad.addColorStop(1, shade(color, -22));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(-110, 120);
+      ctx.bezierCurveTo(-120, 0, -95, -100, 0, -125);
+      ctx.bezierCurveTo(95, -100, 120, 0, 110, 120);
+      ctx.bezierCurveTo(90, 130, 60, 135, 30, 130);
+      ctx.bezierCurveTo(0, 125, -30, 130, -60, 130);
+      ctx.bezierCurveTo(-90, 130, -110, 125, -110, 120);
+      ctx.closePath();
+      ctx.fill();
+
+      // Franja cheia cobrindo a testa
+      const bang = ctx.createLinearGradient(0, -100, 0, -30);
+      bang.addColorStop(0, shade(color, 15));
+      bang.addColorStop(1, shade(color, -5));
+      ctx.fillStyle = bang;
+      ctx.beginPath();
+      ctx.moveTo(-80, -55);
+      ctx.bezierCurveTo(-60, -95, 60, -95, 80, -55);
+      ctx.bezierCurveTo(75, -35, 50, -28, 0, -30);
+      ctx.bezierCurveTo(-50, -28, -75, -35, -80, -55);
+      ctx.closePath();
+      ctx.fill();
+
+      // Fios da franja
+      ctx.strokeStyle = shade(color, -15);
+      ctx.lineWidth = 0.6;
+      ctx.globalAlpha = 0.5;
+      for (let i = -75; i < 75; i += 4) {
+        ctx.beginPath();
+        ctx.moveTo(i, -85);
+        ctx.bezierCurveTo(i + 1, -60, i - 1, -40, i, -30);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Fios do comprimento
+      ctx.strokeStyle = shade(color, 18);
+      ctx.lineWidth = 0.5;
+      ctx.globalAlpha = 0.35;
+      for (let i = -100; i < 100; i += 5) {
+        ctx.beginPath();
+        ctx.moveTo(i, -115);
+        ctx.bezierCurveTo(i + 2, -40, i - 2, 40, i, 125);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Brilho
+      const shine = ctx.createLinearGradient(-40, -75, 40, -75);
+      shine.addColorStop(0, 'rgba(255,255,255,0)');
+      shine.addColorStop(0.5, 'rgba(255,255,255,0.25)');
+      shine.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = shine;
+      ctx.beginPath();
+      ctx.moveTo(-80, -55);
+      ctx.bezierCurveTo(-60, -95, 60, -95, 80, -55);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+  }
+];
+
+/* ---------- UTIL: manipulação de cor ---------- */
+function hexToRgb(hex) {
+  hex = hex.replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  const n = parseInt(hex, 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map(v => clamp(Math.round(v), 0, 255).toString(16).padStart(2, '0')).join('');
+}
+function shade(hex, percent) {
+  const { r, g, b } = hexToRgb(hex);
+  const f = percent / 100;
+  const adj = f > 0 ? (255 - r) * f : r * f;
+  return rgbToHex(r + adj, g + adj, b + adj);
+}
+
+/* ---------- CORES DE CABELO ---------- */
+const HAIR_COLORS = [
+  { name: 'Preto',      hex: '#1a1208' },
+  { name: 'Castanho',   hex: '#3a2414' },
+  { name: 'Chocolate',  hex: '#5a3420' },
+  { name: 'Loiro',      hex: '#b8915a' },
+  { name: 'Platinado',  hex: '#e8d9b0' },
+  { name: 'Ruivo',      hex: '#8a3418' },
+  { name: 'Azul',       hex: '#1a3a6a' },
+  { name: 'Rosa',       hex: '#c85a8a' }
+];
+
+/* =========================================================
+   INICIALIZAÇÃO
+   ========================================================= */
+function init() {
+  setupUpload();
+  setupTabs();
+  renderHairGrid();
+  renderColorGrid();
+  setupControls();
+  setupToolbar();
+  setupCanvasInteraction();
+  loadFaceMesh();
+
+  $('btnDownload').addEventListener('click', downloadImage);
+  $('btnResetAll').addEventListener('click', resetAll);
+}
+
+/* ---------- UPLOAD ---------- */
+function setupUpload() {
+  const dz = $('dropzone');
+  const fi = $('fileInput');
+  dz.addEventListener('click', () => fi.click());
+  fi.addEventListener('change', (e) => {
+    if (e.target.files[0]) loadImage(e.target.files[0]);
+  });
+  dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('drag'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+  dz.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dz.classList.remove('drag');
+    if (e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]);
+  });
+}
+
+function loadImage(file) {
+  if (!file.type.startsWith('image/')) {
+    showToast('Arquivo inválido. Use uma imagem.');
+    return;
+  }
+  showLoader(true);
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      APP.image = img;
+      APP.imageW = img.width;
+      APP.imageH = img.height;
+      setupCanvases();
+      renderPreview();
+      setStatus('photo', 'ok');
+      $('emptyState').classList.add('hidden');
+      detectFace(img).then(() => {
+        showLoader(false);
+        if (APP.selectedHair) applyHair();
+      }).catch((err) => {
+        console.warn('Detecção facial falhou:', err);
+        setStatus('face', 'warn');
+        showLoader(false);
+        showToast('Rosto não detectado. Use uma foto frontal.');
+      });
+    };
+    img.onerror = () => { showLoader(false); showToast('Erro ao carregar imagem.'); };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function setupCanvases() {
+  // Ajusta o container para proporção da imagem
+  const container = $('canvasContainer');
+  const maxW = window.innerWidth - 400;
+  const maxH = window.innerHeight - 120;
+  const ratio = APP.imageW / APP.imageH;
+  let w = maxW, h = maxW / ratio;
+  if (h > maxH) { h = maxH; w = maxH * ratio; }
+  container.style.width = w + 'px';
+  container.style.height = h + 'px';
+
+  // Todos os canvas com a resolução real da imagem
+  ['layer0', 'layer1', 'layer2', 'layer3', 'layer4', 'layerCompare'].forEach(id => {
+    const c = $(id);
+    c.width = APP.imageW;
+    c.height = APP.imageH;
+    c.style.width = w + 'px';
+    c.style.height = h + 'px';
+  });
+
+  // Desenha a imagem original no layer0
+  const ctx0 = $('layer0').getContext('2d');
+  ctx0.drawImage(APP.image, 0, 0);
+
+  // Limpa outros layers
+  ['layer1', 'layer2', 'layer3', 'layer4', 'layerCompare'].forEach(id => {
+    $(id).getContext('2d').clearRect(0, 0, APP.imageW, APP.imageH);
+  });
+
+  fitToScreen();
+}
+
+function renderPreview() {
+  const wrap = $('previewWrap');
+  wrap.innerHTML = '';
+  const img = APP.image.cloneNode();
+  wrap.appendChild(img);
+}
+
+/* =========================================================
+   MEDIAPIPE FACEMESH
+   ========================================================= */
+function loadFaceMesh() {
+  if (typeof FaceMesh === 'undefined') {
+    console.warn('MediaPipe não carregado. Funcionalidade facial limitada.');
+    return;
+  }
+  try {
+    APP.faceMesh = new FaceMesh({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+    });
+    APP.faceMesh.setOptions({
+      maxNumFaces: 1,
+      refineLandmarks: true,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
+    });
+    APP.faceMesh.onResults(onFaceResults);
+    APP.faceReady = true;
+  } catch (e) {
+    console.warn('Falha ao iniciar FaceMesh:', e);
+  }
+}
+
+function detectFace(img) {
+  return new Promise((resolve, reject) => {
+    if (!APP.faceReady) { reject(new Error('FaceMesh não disponível')); return; }
+    const timeout = setTimeout(() => reject(new Error('Timeout')), 12000);
+    const originalOnResults = APP.faceMesh.onResults.bind(APP.faceMesh);
+    APP.faceMesh.onResults((results) => {
+      clearTimeout(timeout);
+      APP.faceMesh.onResults(originalOnResults);
+      if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+        APP.landmarks = results.multiFaceLandmarks[0];
+        APP.faceReady = true;
+        calculateHeadMesh();
+        createHairMask();
+        setStatus('face', 'ok');
+        resolve();
+      } else {
+        reject(new Error('Nenhum rosto detectado'));
+      }
+    });
+    APP.faceMesh.send({ image: img }).catch((e) => {
+      clearTimeout(timeout);
+      reject(e);
+    });
+  });
+}
+
+function onFaceResults(results) {
+  // Handler padrão — não faz nada, usamos Promise em detectFace
+}
+
+/* =========================================================
+   FASE 2 — MALHA DA CABEÇA
+   ========================================================= */
+function calculateHeadMesh() {
+  if (!APP.landmarks) return;
+  const lm = APP.landmarks;
+  const W = APP.imageW, H = APP.imageH;
+
+  // Pontos-chave do FaceMesh (índices padrão)
+  const pt = (i) => ({ x: lm[i].x * W, y: lm[i].y * H, z: lm[i].z || 0 });
+
+  // Centro do rosto (média de pontos simétricos)
+  const nose = pt(1);       // ponta do nariz
+  const forehead = pt(10);  // topo da testa
+  const chin = pt(152);     // queixo
+  const leftEye = pt(33);
+  const rightEye = pt(263);
+  const leftEar = pt(234);
+  const rightEar = pt(454);
+
+  // Linha do cabelo (contorno superior)
+  const hairline = [
+    10, 67, 69, 103, 104, 105, 107, 108, 109,
+    150, 149, 176, 148,
+    377, 378, 379, 380, 381, 397,
+    332, 333, 334, 336, 337, 338, 299, 297
+  ].map(i => pt(i));
+
+  // Largura e altura do rosto
+  const faceWidth = Math.hypot(leftEar.x - rightEar.x, leftEar.y - rightEar.y);
+  const faceHeight = Math.hypot(chin.x - forehead.x, chin.y - forehead.y);
+
+  // Centro da testa (para posicionar o cabelo)
+  const faceCenter = {
+    x: (leftEye.x + rightEye.x) / 2,
+    y: (forehead.y + nose.y * 0.3) / 1.3
+  };
+
+  // Ângulo da cabeça (inclinação baseada nos olhos)
+  const headAngle = Math.atan2(rightEye.y - leftEye.y, rightEye.x - leftEye.x);
+
+  // Distância entre olhos (escala)
+  const eyeDist = Math.hypot(rightEye.x - leftEye.x, rightEye.y - leftEye.y);
+
+  // Largura/altura da testa
+  const browLeft = pt(70);
+  const browRight = pt(300);
+  const browMid = pt(8);
+  const foreheadWidth = Math.hypot(browRight.x - browLeft.x, browRight.y - browLeft.y);
+  const foreheadHeight = Math.hypot(forehead.x - browMid.x, forehead.y - browMid.y);
+
+  // Bounding box do cabelo (baseado na hairline + margem)
+  const xs = hairline.map(p => p.x);
+  const ys = hairline.map(p => p.y);
+  const hairMinX = Math.min(...xs);
+  const hairMaxX = Math.max(...xs);
+  const hairMinY = Math.min(...ys);
+  const hairMaxY = Math.max(...ys);
+  const hairCX = (hairMinX + hairMaxX) / 2;
+  const hairCY = (hairMinY + hairMaxY) / 2;
+  const hairW = (hairMaxX - hairMinX) * 1.3;
+  const hairH = (hairMaxY - hairMinY) * 1.6;
+
+  // Amostrar cor de pele (região da bochecha/testa)
+  const skinSamplePoints = [pt(16), pt(37), pt(267), pt(9), pt(151)];
+  const skinColor = sampleSkinColor(skinSamplePoints);
+
+  APP.head = {
+    center: faceCenter,
+    hairCenter: { x: hairCX, y: hairCY },
+    hairWidth: hairW,
+    hairHeight: hairH,
+    faceWidth, faceHeight,
+    eyeDist,
+    headAngle,
+    foreheadWidth, foreheadHeight,
+    hairline,
+    forehead, chin, nose,
+    leftEye, rightEye,
+    leftEar, rightEar,
+    scale: eyeDist / 100  // normalizado
+  };
+  APP.skinColor = skinColor;
+}
+
+function sampleSkinColor(points) {
+  // Cria canvas temporário para amostrar cor
+  const tmp = document.createElement('canvas');
+  tmp.width = APP.imageW;
+  tmp.height = APP.imageH;
+  const tctx = tmp.getContext('2d');
+  tctx.drawImage(APP.image, 0, 0);
+  let r = 0, g = 0, b = 0, n = 0;
+  points.forEach(p => {
+    const radius = 8;
+    for (let dy = -radius; dy <= radius; dy += 2) {
+      for (let dx = -radius; dx <= radius; dx += 2) {
+        const x = Math.floor(p.x + dx);
+        const y = Math.floor(p.y + dy);
+        if (x < 0 || y < 0 || x >= APP.imageW || y >= APP.imageH) continue;
+        const d = tctx.getImageData(x, y, 1, 1).data;
+        r += d[0]; g += d[1]; b += d[2]; n++;
+      }
+    }
+  });
+  if (n === 0) return '#d4a574';
+  return rgbToHex(r / n, g / n, b / n);
+}
+
+/* =========================================================
+   FASE 3 — MÁSCARA DE REMOÇÃO DO CABELO
+   ========================================================= */
+function createHairMask() {
+  if (!APP.head) return;
+  const c1 = $('layer1');
+  const ctx1 = c1.getContext('2d');
+  ctx1.clearRect(0, 0, APP.imageW, APP.imageH);
+
+  const { hairline, forehead, leftEar, rightEar, hairCenter, hairWidth, hairHeight } = APP.head;
+
+  // Cria caminho da região do cabelo (hairline + topo da cabeça)
+  ctx1.save();
+
+  // Camada 1: Preenche a região do cabelo com a cor de pele
+  ctx1.beginPath();
+  // Começa pela hairline
+  if (hairline.length > 0) {
+    ctx1.moveTo(hairline[0].x, hairline[0].y);
+    for (let i = 1; i < hairline.length; i++) {
+      ctx1.lineTo(hairline[i].x, hairline[i].y);
+    }
+  }
+  // Sobe até o topo da cabeça (elipse)
+  const topY = hairCenter.y - hairHeight * 0.55;
+  ctx1.bezierCurveTo(
+    hairCenter.x + hairWidth * 0.5, topY,
+    hairCenter.x + hairWidth * 0.5, topY - 20,
+    hairCenter.x, topY - 30
+  );
+  ctx1.bezierCurveTo(
+    hairCenter.x - hairWidth * 0.5, topY - 20,
+    hairCenter.x - hairWidth * 0.5, topY,
+    hairline[0].x, hairline[0].y
+  );
+  ctx1.closePath();
+
+  // Preenche com cor de pele
+  ctx1.fillStyle = APP.skinColor;
+  ctx1.fill();
+
+  // Adiciona variação sutil de tom para parecer pele natural
+  const skinGrad = ctx1.createLinearGradient(hairCenter.x, topY, hairCenter.x, hairCenter.y);
+  skinGrad.addColorStop(0, shade(APP.skinColor, -5));
+  skinGrad.addColorStop(1, shade(APP.skinColor, 3));
+  ctx1.globalCompositeOperation = 'source-atop';
+  ctx1.fillStyle = skinGrad;
+  ctx1.fill();
+  ctx1.globalCompositeOperation = 'source-over';
+
+  // Blur nas bordas para suavizar transição
+  ctx1.filter = 'blur(6px)';
+  ctx1.globalCompositeOperation = 'destination-out';
+  ctx1.beginPath();
+  // Borda interna (apaga as bordas para criar fade)
+  if (hairline.length > 0) {
+    ctx1.moveTo(hairline[0].x, hairline[0].y);
+    for (let i = 1; i < hairline.length; i++) {
+      ctx1.lineTo(hairline[i].x, hairline[i].y);
+    }
+  }
+  ctx1.closePath();
+  ctx1.strokeStyle = 'rgba(0,0,0,0.7)';
+  ctx1.lineWidth = 8;
+  ctx1.stroke();
+  ctx1.filter = 'none';
+  ctx1.globalCompositeOperation = 'source-over';
+
+  ctx1.restore();
+
+  // Guarda máscara para composição
+  APP.hairMask = c1;
+}
+
+/* =========================================================
+   FASE 4/5/6 — RENDERIZAÇÃO DO CABELO
+   ========================================================= */
+function loadHair(hairId) {
+  APP.selectedHair = HAIRSTYLES.find(h => h.id === hairId) || null;
+  renderHairGrid();
+  if (APP.image) applyHair();
+}
+
+function applyHair() {
+  if (!APP.selectedHair || !APP.image) return;
+  renderHair();
+  renderShadows();
+  renderHighlights();
+  setStatus('hair', 'ok');
+}
+
+function renderHair() {
+  const c2 = $('layer2');
+  const ctx2 = c2.getContext('2d');
+  ctx2.clearRect(0, 0, APP.imageW, APP.imageH);
+  if (!APP.selectedHair || !APP.head) return;
+
+  const { hairCenter, hairWidth, hairHeight, headAngle } = APP.head;
+  const ctrl = APP.controls;
+
+  // Calcula bounds finais com ajustes do usuário
+  const baseW = hairWidth * ctrl.w * ctrl.scale;
+  const baseH = hairHeight * ctrl.h * ctrl.scale;
+  const cx = hairCenter.x + ctrl.x;
+  const cy = hairCenter.y + ctrl.y - hairHeight * 0.1; // pequeno ajuste vertical
+  const angle = headAngle + (ctrl.rot * Math.PI / 180);
+
+  const bounds = {
+    cx, cy,
+    w: baseW,
+    h: baseH,
+    angle: ctrl.mirror ? -angle : angle
+  };
+
+  ctx2.save();
+  ctx2.globalAlpha = ctrl.opacity;
+
+  // Sombra do cabelo (camada separada em layer3)
+  // Aqui desenhamos apenas o cabelo
+  APP.selectedHair.draw(ctx2, bounds, APP.selectedColor);
+
+  ctx2.restore();
+}
+
+function renderShadows() {
+  const c3 = $('layer3');
+  const ctx3 = c3.getContext('2d');
+  ctx3.clearRect(0, 0, APP.imageW, APP.imageH);
+  if (!APP.selectedHair || !APP.head) return;
+
+  const { hairCenter, hairWidth, hairHeight, headAngle } = APP.head;
+  const ctrl = APP.controls;
+  const baseW = hairWidth * ctrl.w * ctrl.scale;
+  const baseH = hairHeight * ctrl.h * ctrl.scale;
+  const cx = hairCenter.x + ctrl.x;
+  const cy = hairCenter.y + ctrl.y - hairHeight * 0.1;
+  const angle = headAngle + (ctrl.rot * Math.PI / 180);
+
+  ctx3.save();
+  ctx3.globalAlpha = ctrl.opacity * 0.6;
+
+  // Sombra lateral esquerda (luz vindo da direita)
+  const shadowGrad = ctx3.createLinearGradient(cx - baseW / 2, cy, cx + baseW / 2, cy);
+  shadowGrad.addColorStop(0, 'rgba(0,0,0,0.4)');
+  shadowGrad.addColorStop(0.5, 'rgba(0,0,0,0)');
+  shadowGrad.addColorStop(1, 'rgba(0,0,0,0.15)');
+
+  ctx3.translate(cx, cy);
+  ctx3.rotate(ctrl.mirror ? -angle : angle);
+  ctx3.scale(baseW / 200, baseH / 200);
+  ctx3.fillStyle = shadowGrad;
+  ctx3.beginPath();
+  ctx3.ellipse(0, -10, 120, 140, 0, 0, Math.PI * 2);
+  ctx3.fill();
+
+  // Sombra projetada na testa
+  ctx3.setTransform(1, 0, 0, 1, 0, 0);
+  ctx3.globalAlpha = ctrl.opacity * 0.35;
+  const dropShadow = ctx3.createRadialGradient(cx, cy + baseH * 0.3, 5, cx, cy + baseH * 0.3, baseW * 0.5);
+  dropShadow.addColorStop(0, 'rgba(0,0,0,0.5)');
+  dropShadow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx3.fillStyle = dropShadow;
+  ctx3.beginPath();
+  ctx3.ellipse(cx, cy + baseH * 0.3, baseW * 0.45, baseH * 0.15, 0, 0, Math.PI * 2);
+  ctx3.fill();
+
+  ctx3.restore();
+}
+
+function renderHighlights() {
+  const c4 = $('layer4');
+  const ctx4 = c4.getContext('2d');
+  ctx4.clearRect(0, 0, APP.imageW, APP.imageH);
+  if (!APP.selectedHair || !APP.head) return;
+
+  const { hairCenter, hairWidth, hairHeight, headAngle } = APP.head;
+  const ctrl = APP.controls;
+  const baseW = hairWidth * ctrl.w * ctrl.scale;
+  const baseH = hairHeight * ctrl.h * ctrl.scale;
+  const cx = hairCenter.x + ctrl.x;
+  const cy = hairCenter.y + ctrl.y - hairHeight * 0.1;
+
+  ctx4.save();
+
+  // Aplica brilho/contraste via filter
+  const filters = [];
+  if (ctrl.bright !== 0) filters.push(`brightness(${100 + ctrl.bright}%)`);
+  if (ctrl.contrast !== 0) filters.push(`contrast(${100 + ctrl.contrast}%)`);
+  if (filters.length) {
+    // Aplicamos filtro aos layers 2 e 3 via composição
+    // Para simplificar, aplicamos um overlay de brilho no layer4
+  }
+
+  // Reflexo de luz superior
+  ctx4.globalAlpha = ctrl.opacity * 0.3;
+  const topLight = ctx4.createRadialGradient(
+    cx - baseW * 0.15, cy - baseH * 0.4, 5,
+    cx - baseW * 0.15, cy - baseH * 0.4, baseW * 0.4
+  );
+  topLight.addColorStop(0, 'rgba(255,255,255,0.4)');
+  topLight.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx4.fillStyle = topLight;
+  ctx4.beginPath();
+  ctx4.ellipse(cx - baseW * 0.15, cy - baseH * 0.4, baseW * 0.35, baseH * 0.25, -0.3, 0, Math.PI * 2);
+  ctx4.fill();
+
+  // Brilho ajustável (overlay branco)
+  if (ctrl.bright > 0) {
+    ctx4.globalAlpha = ctrl.opacity * (ctrl.bright / 100) * 0.3;
+    ctx4.fillStyle = '#fff';
+    ctx4.globalCompositeOperation = 'soft-light';
+    ctx4.fillRect(0, 0, APP.imageW, APP.imageH);
+    ctx4.globalCompositeOperation = 'source-over';
+  }
+
+  // Contraste
+  if (ctrl.contrast !== 0) {
+    ctx4.globalAlpha = Math.abs(ctrl.contrast) / 100 * 0.2;
+    ctx4.globalCompositeOperation = ctrl.contrast > 0 ? 'overlay' : 'soft-light';
+    ctx4.fillStyle = ctrl.contrast > 0 ? '#888' : '#444';
+    ctx4.fillRect(0, 0, APP.imageW, APP.imageH);
+    ctx4.globalCompositeOperation = 'source-over';
+  }
+
+  ctx4.restore();
+}
+
+function updateHair() {
+  if (!APP.selectedHair) return;
+  applyHair();
+}
+
+/* ---------- COLORAÇÃO ---------- */
+function updateColor(hex) {
+  APP.selectedColor = hex;
+  renderColorGrid();
+  if (APP.selectedHair) applyHair();
+}
+
+/* =========================================================
+   FASE 10 — COMPARAÇÃO ANTES/DEPOIS
+   ========================================================= */
+function compareMode() {
+  APP.compareMode = !APP.compareMode;
+  const slider = $('compareSlider');
+  const lc = $('layerCompare');
+  const toolBtn = $('toolCompare');
+
+  if (APP.compareMode) {
+    toolBtn.classList.add('active');
+    slider.style.display = 'block';
+    slider.style.left = '50%';
+    APP.comparePos = 0.5;
+    updateCompareClip();
+  } else {
+    toolBtn.classList.remove('active');
+    slider.style.display = 'none';
+    lc.style.display = 'none';
+    lc.style.clipPath = '';
+  }
+}
+
+function updateCompareClip() {
+  const lc = $('layerCompare');
+  if (!APP.compareMode) return;
+  lc.style.display = 'block';
+
+  // Copia a imagem original para layerCompare
+  const ctx = lc.getContext('2d');
+  ctx.clearRect(0, 0, APP.imageW, APP.imageH);
+  ctx.drawImage(APP.image, 0, 0);
+
+  // Aplica clip — mostra só a metade esquerda (ANTES)
+  const pct = APP.comparePos * 100;
+  lc.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+
+  // Os outros layers mostram o DEPOIS (direita)
+  ['layer0', 'layer1', 'layer2', 'layer3', 'layer4'].forEach(id => {
+    $(id).style.clipPath = `inset(0 0 0 ${pct}%)`;
+  });
+}
+
+/* =========================================================
+   FASE 11 — ZOOM E PAN
+   ========================================================= */
+function setupCanvasInteraction() {
+  const stage = $('canvasStage');
+  const container = $('canvasContainer');
+
+  // Pan com arrasto
+  stage.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.compare-slider')) return;
+    APP.isDragging = true;
+    APP.dragStart = { x: e.clientX, y: e.clientY };
+    APP.panStart = { x: APP.panX, y: APP.panY };
+    stage.classList.add('dragging');
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!APP.isDragging) return;
+    APP.panX = APP.panStart.x + (e.clientX - APP.dragStart.x);
+    APP.panY = APP.panStart.y + (e.clientY - APP.dragStart.y);
+    applyTransform();
+  });
+  window.addEventListener('mouseup', () => {
+    APP.isDragging = false;
+    stage.classList.remove('dragging');
+  });
+
+  // Zoom com scroll
+  stage.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const delta = -e.deltaY * 0.001;
+    APP.zoom = clamp(APP.zoom + delta, 0.3, 5);
+    applyTransform();
+    updateZoomLabel();
+  }, { passive: false });
+
+  // Touch support
+  let lastTouchDist = 0;
+  stage.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+      APP.isDragging = true;
+      APP.dragStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      APP.panStart = { x: APP.panX, y: APP.panY };
+    } else if (e.touches.length === 2) {
+      lastTouchDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+    }
+  });
+  stage.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (e.touches.length === 1 && APP.isDragging) {
+      APP.panX = APP.panStart.x + (e.touches[0].clientX - APP.dragStart.x);
+      APP.panY = APP.panStart.y + (e.touches[0].clientY - APP.dragStart.y);
+      applyTransform();
+    } else if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const delta = (dist - lastTouchDist) * 0.005;
+      APP.zoom = clamp(APP.zoom + delta, 0.3, 5);
+      lastTouchDist = dist;
+      applyTransform();
+      updateZoomLabel();
+    }
+  }, { passive: false });
+  stage.addEventListener('touchend', () => { APP.isDragging = false; });
+
+  // Compare slider drag
+  const slider = $('compareSlider');
+  let sliderDrag = false;
+  slider.addEventListener('mousedown', () => { sliderDrag = true; });
+  window.addEventListener('mousemove', (e) => {
+    if (!sliderDrag) return;
+    const rect = container.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    APP.comparePos = clamp(x, 0, 1);
+    slider.style.left = (APP.comparePos * 100) + '%';
+    updateCompareClip();
+  });
+  window.addEventListener('mouseup', () => { sliderDrag = false; });
+}
+
+function applyTransform() {
+  const container = $('canvasContainer');
+  container.style.transform = `translate(${APP.panX}px, ${APP.panY}px) scale(${APP.zoom})`;
+}
+
+function updateZoomLabel() {
+  $('zoomLabel').textContent = Math.round(APP.zoom * 100) + '%';
+}
+
+function zoomCanvas(delta) {
+  APP.zoom = clamp(APP.zoom + delta, 0.3, 5);
+  applyTransform();
+  updateZoomLabel();
+}
+
+function fitToScreen() {
+  APP.zoom = 1;
+  APP.panX = 0;
+  APP.panY = 0;
+  applyTransform();
+  updateZoomLabel();
+}
+
+/* =========================================================
+   FASE 12 — EXPORTAÇÃO
+   ========================================================= */
+function downloadImage() {
+  if (!APP.image) { showToast('Envie uma foto primeiro.'); return; }
+
+  // Cria canvas de exportação em alta resolução
+  const outSize = 2048;
+  const ratio = APP.imageW / APP.imageH;
+  const outW = ratio >= 1 ? outSize : Math.round(outSize * ratio);
+  const outH = ratio >= 1 ? Math.round(outSize / ratio) : outSize;
+
+  const out = document.createElement('canvas');
+  out.width = outW;
+  out.height = outH;
+  const octx = out.getContext('2d');
+
+  // Escala para alta resolução
+  const sx = outW / APP.imageW;
+  const sy = outH / APP.imageH;
+
+  // Layer 0 — foto original
+  octx.drawImage(APP.image, 0, 0, outW, outH);
+
+  // Layer 1 — máscara
+  octx.save();
+  octx.setTransform(sx, 0, 0, sy, 0, 0);
+  octx.drawImage($('layer1'), 0, 0);
+  octx.restore();
+
+  // Layer 2 — cabelo
+  octx.save();
+  octx.setTransform(sx, 0, 0, sy, 0, 0);
+  octx.drawImage($('layer2'), 0, 0);
+  octx.restore();
+
+  // Layer 3 — sombras
+  octx.save();
+  octx.setTransform(sx, 0, 0, sy, 0, 0);
+  octx.drawImage($('layer3'), 0, 0);
+  octx.restore();
+
+  // Layer 4 — efeitos
+  octx.save();
+  octx.setTransform(sx, 0, 0, sy, 0, 0);
+  octx.drawImage($('layer4'), 0, 0);
+  octx.restore();
+
+  // Download
+  out.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `hairos-studio-${Date.now()}.png`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Imagem exportada em 2048px!');
+  }, 'image/png');
+}
+
+/* =========================================================
+   CONTROLES MANUAIS
+   ========================================================= */
+function setupControls() {
+  const controls = [
+    { id: 'ctrlScale',    key: 'scale',    valId: 'valScale',    fmt: v => v.toFixed(2) },
+    { id: 'ctrlRot',      key: 'rot',      valId: 'valRot',      fmt: v => v + '°' },
+    { id: 'ctrlX',        key: 'x',        valId: 'valX',        fmt: v => Math.round(v) },
+    { id: 'ctrlY',        key: 'y',        valId: 'valY',        fmt: v => Math.round(v) },
+    { id: 'ctrlH',        key: 'h',        valId: 'valH',        fmt: v => v.toFixed(2) },
+    { id: 'ctrlW',        key: 'w',        valId: 'valW',        fmt: v => v.toFixed(2) },
+    { id: 'ctrlOpacity',  key: 'opacity',  valId: 'valOpacity',  fmt: v => v.toFixed(2) },
+    { id: 'ctrlBright',   key: 'bright',   valId: 'valBright',   fmt: v => Math.round(v) },
+    { id: 'ctrlContrast', key: 'contrast', valId: 'valContrast', fmt: v => Math.round(v) },
+    { id: 'ctrlShadow',   key: 'shadow',   valId: 'valShadow',   fmt: v => Math.round(v) }
+  ];
+
+  controls.forEach(c => {
+    const el = $(c.id);
+    el.addEventListener('input', () => {
+      APP.controls[c.key] = parseFloat(el.value);
+      $(c.valId).textContent = c.fmt(APP.controls[c.key]);
+      updateHair();
+    });
+  });
+
+  $('btnCenter').addEventListener('click', () => {
+    APP.controls.x = 0; APP.controls.y = 0; APP.controls.rot = 0;
+    $('ctrlX').value = 0; $('ctrlY').value = 0; $('ctrlRot').value = 0;
+    $('valX').textContent = '0'; $('valY').textContent = '0'; $('valRot').textContent = '0°';
+    updateHair();
+  });
+
+  $('btnReset').addEventListener('click', resetHair);
+  $('btnMirror').addEventListener('click', () => {
+    APP.controls.mirror = !APP.controls.mirror;
+    updateHair();
+    showToast(APP.controls.mirror ? 'Espelhado' : 'Normal');
+  });
+}
+
+function resetHair() {
+  APP.controls = {
+    scale: 1, rot: 0, x: 0, y: 0, h: 1, w: 1,
+    opacity: 1, bright: 0, contrast: 0, shadow: 8,
+    mirror: false
+  };
+  const map = {
+    ctrlScale: 1, ctrlRot: 0, ctrlX: 0, ctrlY: 0,
+    ctrlH: 1, ctrlW: 1, ctrlOpacity: 1,
+    ctrlBright: 0, ctrlContrast: 0, ctrlShadow: 8
+  };
+  Object.entries(map).forEach(([id, v]) => { $(id).value = v; });
+  $('valScale').textContent = '1.00';
+  $('valRot').textContent = '0°';
+  $('valX').textContent = '0';
+  $('valY').textContent = '0';
+  $('valH').textContent = '1.00';
+  $('valW').textContent = '1.00';
+  $('valOpacity').textContent = '1.00';
+  $('valBright').textContent = '0';
+  $('valContrast').textContent = '0';
+  $('valShadow').textContent = '8';
+  updateHair();
+  showToast('Ajustes resetados');
+}
+
+function resetAll() {
+  APP.image = null;
+  APP.landmarks = null;
+  APP.head = null;
+  APP.selectedHair = null;
+  APP.skinColor = null;
+  ['layer0', 'layer1', 'layer2', 'layer3', 'layer4', 'layerCompare'].forEach(id => {
+    const c = $(id);
+    c.getContext('2d').clearRect(0, 0, c.width, c.height);
+  });
+  $('previewWrap').innerHTML = '<div class="preview-empty">Sem imagem</div>';
+  $('emptyState').classList.remove('hidden');
+  document.querySelectorAll('.status-item').forEach(el => el.classList.remove('ok', 'warn', 'err'));
+  resetHair();
+  fitToScreen();
+  if (APP.compareMode) compareMode();
+  renderHairGrid();
+  showToast('Tudo resetado');
+}
+
+/* =========================================================
+   TOOLBAR
+   ========================================================= */
+function setupToolbar() {
+  $('toolZoomIn').addEventListener('click', () => zoomCanvas(0.2));
+  $('toolZoomOut').addEventListener('click', () => zoomCanvas(-0.2));
+  $('toolFit').addEventListener('click', fitToScreen);
+  $('toolCompare').addEventListener('click', compareMode);
+}
+
+/* =========================================================
+   RENDERIZAÇÃO DE UI
+   ========================================================= */
+function setupTabs() {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      APP.selectedCategory = tab.dataset.cat;
+      renderHairGrid();
+    });
+  });
+}
+
+function renderHairGrid() {
+  const grid = $('hairGrid');
+  grid.innerHTML = '';
+  const items = HAIRSTYLES.filter(h => h.categoria === APP.selectedCategory);
+  items.forEach(hair => {
+    const card = document.createElement('div');
+    card.className = 'hair-card' + (APP.selectedHair && APP.selectedHair.id === hair.id ? ' selected' : '');
+    card.innerHTML = `
+      <div class="hair-thumb"><canvas width="120" height="120"></canvas></div>
+      <div class="hair-name">${hair.nome}</div>
+    `;
+    card.addEventListener('click', () => loadHair(hair.id));
+    grid.appendChild(card);
+
+    // Desenha miniatura do penteado
+    const canvas = card.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    // Fundo escuro
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, 120, 120);
+    // Silhueta de rosto (placeholder visual)
+    ctx.fillStyle = '#2a2a2a';
+    ctx.beginPath();
+    ctx.ellipse(60, 70, 28, 38, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Pescoço
+    ctx.fillRect(50, 100, 20, 20);
+    // Desenha o cabelo em cima
+    const bounds = { cx: 60, cy: 55, w: 100, h: 100, angle: 0 };
+    hair.draw(ctx, bounds, APP.selectedColor);
+  });
+}
+
+function renderColorGrid() {
+  const grid = $('colorGrid');
+  grid.innerHTML = '';
+  HAIR_COLORS.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'color-swatch' + (APP.selectedColor === c.hex ? ' active' : '');
+    sw.style.background = c.hex;
+    sw.title = c.name;
+    sw.addEventListener('click', () => updateColor(c.hex));
+    grid.appendChild(sw);
+  });
+}
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+window.addEventListener('load', init);
+window.addEventListener('resize', () => {
+  if (APP.image) setupCanvases();
+});
+</script>
+</body>
+</html>
