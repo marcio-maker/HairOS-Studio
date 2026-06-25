@@ -150,25 +150,153 @@
         @keyframes typing { 0%, 80%, 100% { transform: scale(1); opacity: 0.4; } 40% { transform: scale(1.2); opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-        .options { background: transparent; padding: 6px 10px 10px 10px; display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; flex-shrink: 0; transition: background 0.3s, border-color 0.3s; border-top: 1px solid rgba(0,0,0,0.05); }
+        /* Botões inline - aparecem logo abaixo da pergunta */
+        .inline-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+        .inline-options button {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #1a1a1a;
+            font-weight: 500;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            flex: 0 1 auto;
+        }
+        body.dark-mode .inline-options button {
+            background: rgba(45,45,45,0.9);
+            border-color: rgba(255,255,255,0.1);
+            color: #f5f3f0;
+        }
+        .inline-options button:hover {
+            background: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        body.dark-mode .inline-options button:hover {
+            background: #f5f3f0;
+            color: #1a1a1a;
+            border-color: #f5f3f0;
+        }
+        .inline-options button:active {
+            transform: scale(0.95);
+        }
+        .inline-options .btn-destaque {
+            background: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+        }
+        body.dark-mode .inline-options .btn-destaque {
+            background: #f5f3f0;
+            color: #1a1a1a;
+            border-color: #f5f3f0;
+        }
+        .inline-options .btn-concluido {
+            background: #27ae60 !important;
+            color: white !important;
+            border-color: #27ae60 !important;
+        }
+        .inline-options .btn-proximo {
+            background: #3498db !important;
+            color: white !important;
+            border-color: #3498db !important;
+        }
+        .inline-options .btn-duvida {
+            background: #9b59b6 !important;
+            color: white !important;
+            border-color: #9b59b6 !important;
+        }
+
+        /* Opções fixas do rodapé (apenas para ações globais) */
+        .options {
+            background: transparent;
+            padding: 6px 10px 10px 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.3s, border-color 0.3s;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
         body.dark-mode .options { border-top-color: rgba(255,255,255,0.05); }
-        .options button { background: rgba(255,255,255,0.9); border: 1px solid rgba(0,0,0,0.06); border-radius: 18px; padding: 5px 12px; font-size: 11.5px; cursor: pointer; transition: all 0.2s ease; color: #1a1a1a; font-weight: 500; white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,0.04); flex: 0 1 auto; min-width: 0; max-width: 100%; }
-        body.dark-mode .options button { background: rgba(45,45,45,0.9); border-color: rgba(255,255,255,0.06); color: #f5f3f0; }
-        .options button:hover { background: #1a1a1a; color: white; border-color: #1a1a1a; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        body.dark-mode .options button:hover { background: #f5f3f0; color: #1a1a1a; border-color: #f5f3f0; }
+        .options button {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 18px;
+            padding: 5px 12px;
+            font-size: 11.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #1a1a1a;
+            font-weight: 500;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            flex: 0 1 auto;
+            min-width: 0;
+            max-width: 100%;
+        }
+        body.dark-mode .options button {
+            background: rgba(45,45,45,0.9);
+            border-color: rgba(255,255,255,0.06);
+            color: #f5f3f0;
+        }
+        .options button:hover {
+            background: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        body.dark-mode .options button:hover {
+            background: #f5f3f0;
+            color: #1a1a1a;
+            border-color: #f5f3f0;
+        }
         .options button:active { transform: scale(0.95); }
-        .options .btn-destaque { background: #1a1a1a; color: white; border-color: #1a1a1a; padding: 6px 18px; font-weight: 600; font-size: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-        body.dark-mode .options .btn-destaque { background: #f5f3f0; color: #1a1a1a; border-color: #f5f3f0; }
-        .options .btn-destaque:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
-        .options .btn-concluido { background: #27ae60 !important; color: white !important; border-color: #27ae60 !important; }
-        .options .btn-concluido:hover { background: #2ecc71 !important; border-color: #2ecc71 !important; }
-        body.dark-mode .options .btn-concluido { background: #27ae60 !important; color: white !important; }
-        .options .btn-proximo { background: #3498db !important; color: white !important; border-color: #3498db !important; }
-        .options .btn-proximo:hover { background: #5dade2 !important; border-color: #5dade2 !important; }
-        .options .btn-duvida { background: #9b59b6 !important; color: white !important; border-color: #9b59b6 !important; }
-        .options .btn-duvida:hover { background: #af7ac5 !important; border-color: #af7ac5 !important; }
-        .options .btn-quiz-concluido { background: #27ae60 !important; color: white !important; border-color: #27ae60 !important; }
-        .options .btn-quiz-concluido:hover { background: #2ecc71 !important; border-color: #2ecc71 !important; }
+        .options .btn-destaque {
+            background: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+            padding: 6px 18px;
+            font-weight: 600;
+            font-size: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        body.dark-mode .options .btn-destaque {
+            background: #f5f3f0;
+            color: #1a1a1a;
+            border-color: #f5f3f0;
+        }
+        .options .btn-concluido {
+            background: #27ae60 !important;
+            color: white !important;
+            border-color: #27ae60 !important;
+        }
+        .options .btn-proximo {
+            background: #3498db !important;
+            color: white !important;
+            border-color: #3498db !important;
+        }
+        .options .btn-duvida {
+            background: #9b59b6 !important;
+            color: white !important;
+            border-color: #9b59b6 !important;
+        }
+        .options .btn-quiz-concluido {
+            background: #27ae60 !important;
+            color: white !important;
+            border-color: #27ae60 !important;
+        }
 
         .diagnostic-card {
             background: white;
@@ -415,6 +543,7 @@
             .summary-grid .item .value { font-size: 10px; }
             .rec-carousel-item { flex: 0 0 80px; }
             .rec-carousel-item img { height: 65px; }
+            .inline-options button { font-size: 10px; padding: 4px 10px; }
         }
     </style>
 </head>
@@ -619,7 +748,7 @@
         };
 
         // ============================================================
-        // 3. HAIROS LIBRARY COM TODOS OS CORTES
+        // 3. HAIROS LIBRARY
         // ============================================================
         const HAIRCUTS_LIBRARY = {
             pompadour: { 
@@ -1108,7 +1237,6 @@
             visualDNA.style.profileName = profileNames[bestStyle] || 'Perfil Personalizado';
             visualDNA.style.compatibility = bestScore;
 
-            // RECOMENDAÇÕES DE CORTES
             const allCuts = Object.values(HAIRCUTS_LIBRARY);
             const compatibleCuts = allCuts.filter(cut => {
                 const faceCompatible = cut.faceShapeCompatibility && 
@@ -1165,7 +1293,9 @@
             quizIndex: 0, quizAgent: null,
             specialistsCompleted: [], visualDNA: null,
             modoDuvidas: false,
-            quizConcluido: { arthur: false, isabella: false, ricardo: false }
+            quizConcluido: { arthur: false, isabella: false, ricardo: false },
+            // Armazena opções inline para exibir junto com a mensagem
+            inlineOptions: []
         };
 
         const landingEl = document.getElementById('landing');
@@ -1199,13 +1329,14 @@
             state.specialistsCompleted = []; state.photoData = null;
             state.visualDNA = null; state.modoDuvidas = false;
             state.quizConcluido = { arthur: false, isabella: false, ricardo: false };
+            state.inlineOptions = [];
             visualDNA.isComplete = false;
             visualDNA.recomendacoesExibidas = false;
             renderMessages(); renderOptions(); showLanding(); updateAgentBadges();
         }
 
-        function addMessage(agent, text, type = 'received', photo = null, concluido = false) {
-            state.messages.push({ agent, text, type, photo, concluido });
+        function addMessage(agent, text, type = 'received', photo = null, concluido = false, options = null) {
+            state.messages.push({ agent, text, type, photo, concluido, options });
             renderMessages(); scrollToBottom();
         }
 
@@ -1228,6 +1359,7 @@
                         ${msg.type === 'received' && agent ? `<div class="sender">${name}</div>` : ''}
                         ${msg.text}
                         ${msg.photo ? `<img class="photo-preview" src="${msg.photo}" alt="Foto" onclick="openModal('${msg.photo}', 'Foto enviada')" />` : ''}
+                        ${msg.options && msg.options.length > 0 ? renderInlineOptions(msg.options) : ''}
                     </div>
                 </div>`;
             });
@@ -1239,6 +1371,21 @@
                 </div>`;
             }
             messagesEl.innerHTML = html;
+        }
+
+        function renderInlineOptions(options) {
+            if (!options || options.length === 0) return '';
+            let html = '<div class="inline-options">';
+            options.forEach(opt => {
+                let classes = '';
+                if (opt.destaque) classes += 'btn-destaque ';
+                if (opt.concluido) classes += 'btn-concluido ';
+                if (opt.proximo) classes += 'btn-proximo ';
+                if (opt.duvida) classes += 'btn-duvida ';
+                html += `<button class="${classes}" onclick="handleOption('${opt.value}')">${opt.label}</button>`;
+            });
+            html += '</div>';
+            return html;
         }
 
         function renderOptions() {
@@ -1258,15 +1405,20 @@
 
         function scrollToBottom() { setTimeout(() => { messagesEl.scrollTop = messagesEl.scrollHeight; }, 50); }
 
-        function sendMessage(agent, text, delay = 1000, concluido = false) {
+        function sendMessage(agent, text, delay = 1000, concluido = false, options = null) {
             return new Promise((resolve) => {
                 setTyping(agent, true);
                 setTimeout(() => {
                     setTyping(agent, false);
-                    addMessage(agent, text, 'received', null, concluido);
+                    addMessage(agent, text, 'received', null, concluido, options);
                     resolve();
                 }, delay);
             });
+        }
+
+        // Adiciona mensagem do usuário (à direita)
+        function addUserMessage(text) {
+            addMessage(null, text, 'sent');
         }
 
         function openAvatarModal(agentKey) {
@@ -1310,7 +1462,7 @@
         }
 
         // ============================================================
-        // 11. RENDER FUNCTIONS - RECOMENDAÇÕES PERSONALIZADAS
+        // 11. RENDER FUNCTIONS
         // ============================================================
         function renderDuvidasGrid(agentKey) {
             const duvidas = DUVIDAS_ESPECIALISTAS[agentKey];
@@ -1370,7 +1522,6 @@
             return html;
         }
 
-        // RECOMENDAÇÕES PERSONALIZADAS POR ESPECIALISTA
         function createRecomendacoesCard(agentKey) {
             const agent = agents[agentKey];
             const cardImage = agent.cardImage || agent.avatar;
@@ -1381,7 +1532,6 @@
 
             let sectionsHtml = '';
 
-            // ARTHUR - Visagismo: Cortes + Acessórios + Dicas de finalização
             if (agentKey === 'arthur') {
                 sectionsHtml += `
                     <div class="rec-section">
@@ -1414,10 +1564,7 @@
                         </div>
                     </div>
                 `;
-            }
-
-            // ISABELLA - Colorimetria: Cores + Paleta de Roupas + Maquiagem
-            else if (agentKey === 'isabella') {
+            } else if (agentKey === 'isabella') {
                 sectionsHtml += `
                     <div class="rec-section">
                         <div class="rec-section-title">
@@ -1449,10 +1596,7 @@
                         </div>
                     </div>
                 `;
-            }
-
-            // RICARDO - Cortes: Cortes + Produtos + Manutenção
-            else if (agentKey === 'ricardo') {
+            } else if (agentKey === 'ricardo') {
                 sectionsHtml += `
                     <div class="rec-section">
                         <div class="rec-section-title">
@@ -1570,6 +1714,7 @@
             state.step = 'welcome';
             state.options = [];
             state.modoDuvidas = false;
+            state.inlineOptions = [];
             chatAvatar.src = agent.avatar;
             chatTitle.textContent = `${agent.name} - ${agent.role}`;
             showChat();
@@ -1846,7 +1991,7 @@
         }
 
         // ============================================================
-        // 13. QUIZ DE PREFERÊNCIAS
+        // 13. QUIZ DE PREFERÊNCIAS COM OPÇÕES INLINE
         // ============================================================
         async function iniciarQuiz(agentKey) {
             let quiz;
@@ -1891,17 +2036,15 @@
             }
             
             const pergunta = quiz.perguntas[state.quizIndex];
-            let opcoesHtml = pergunta.opcoes.map((op, idx) => ({
+            const opcoes = pergunta.opcoes.map((op, idx) => ({
                 label: `${String.fromCharCode(65 + idx)}) ${op}`,
                 value: `quiz_resp_${agentKey}_${state.quizIndex}_${idx}`,
                 destaque: true
             }));
             
-            await sendMessage(agent, `📝 **Pergunta ${state.quizIndex + 1} de ${quiz.perguntas.length}**`);
-            await sendMessage(agent, pergunta.pergunta);
-            
-            state.options = opcoesHtml;
-            renderOptions();
+            // Exibe a pergunta com os botões inline (dentro da bolha)
+            await sendMessage(agent, `📝 **Pergunta ${state.quizIndex + 1} de ${quiz.perguntas.length}**`, 500);
+            await sendMessage(agent, pergunta.pergunta, 300, false, opcoes);
         }
 
         // ============================================================
@@ -1925,7 +2068,10 @@
             const duvidas = DUVIDAS_ESPECIALISTAS[agentKey];
             if (!agent || !duvidas || index >= duvidas.perguntas.length) return;
             const duvida = duvidas.perguntas[index];
-            await sendMessage(agent, `❓ ${duvida.pergunta}`, 500);
+            
+            // Usuário clicou na dúvida
+            addUserMessage(`❓ ${duvida.pergunta}`);
+            
             await sendMessage(agent, `💡 ${duvida.resposta}`, 1500);
             await loopInterno(agentKey);
         }
@@ -1948,7 +2094,6 @@
             const nextIndex = (currentIndex + 1) % ordem.length;
             const nextAgentKey = ordem[nextIndex];
             const nextAgent = agents[nextAgentKey];
-            const emojis = { arthur: '👤', isabella: '👩', ricardo: '💇' };
             const mensagensSugestao = [
                 `💡 Que tal conversar também com ${nextAgent.name}? Ele é especialista em ${nextAgent.role}!`,
                 `🔍 ${nextAgent.name} pode te ajudar com mais detalhes sobre ${nextAgent.role}.`,
@@ -2001,6 +2146,7 @@
             renderOptions();
             const agent = agents[state.currentAgent] || agents.helena;
 
+            // Resposta do quiz
             if (value.startsWith('quiz_resp_')) {
                 const parts = value.split('_');
                 const agentKey = parts[2];
@@ -2015,7 +2161,8 @@
                 const pergunta = quiz.perguntas[index];
                 const opcaoEscolhida = pergunta.opcoes[escolha];
                 
-                await sendMessage(agent, `✅ Você escolheu: ${opcaoEscolhida}`);
+                // Mostra a resposta do usuário à direita
+                addUserMessage(`✅ ${opcaoEscolhida}`);
                 
                 const prefMap = {
                     'arthur': ['estiloPreferido', 'personalidade', 'objetivo', 'prioridade', 'estiloPreferido'],
@@ -2044,19 +2191,21 @@
 
             if (value.startsWith('quiz_concluido_')) {
                 const agentKey = value.replace('quiz_concluido_', '');
-                await sendMessage(agent, '✅ Suas preferências já foram registradas!');
+                addUserMessage('✅ Preferências já registradas!');
                 await loopInterno(state.currentAgent);
                 return;
             }
 
             if (value.startsWith('iniciar_quiz_')) {
                 const agentKey = value.replace('iniciar_quiz_', '');
+                addUserMessage('📝 Vamos responder as perguntas!');
                 await iniciarQuiz(agentKey);
                 return;
             }
 
             if (value.startsWith('duvidas_')) {
                 const agentKey = value.replace('duvidas_', '');
+                addUserMessage('📚 Quero tirar dúvidas!');
                 await iniciarModoDuvidas(agentKey);
                 return;
             }
@@ -2069,18 +2218,25 @@
             }
             if (value.startsWith('menu_')) {
                 const agentKey = value.replace('menu_', '');
+                addUserMessage('🔙 Voltar ao menu');
                 await voltarMenuEspecialista(agentKey);
                 return;
             }
 
             if (value === 'arthur' || value === 'isabella' || value === 'ricardo' || value === 'helena') {
+                const nome = agents[value]?.name || value;
+                addUserMessage(`👤 Falar com ${nome}`);
                 startWithAgent(value);
                 return;
             }
 
-            if (value === 'foto') { fileInput.click(); return; }
+            if (value === 'foto') { 
+                fileInput.click(); 
+                return; 
+            }
 
             if (value === 'ver_resultado') {
+                addUserMessage('📊 Ver Visual DNA completo');
                 if (!visualDNA.isComplete) hairosCore();
                 showResultPage();
                 return;
@@ -2199,6 +2355,7 @@
             state.specialistsCompleted = []; state.photoData = null;
             state.visualDNA = null; state.modoDuvidas = false;
             state.quizConcluido = { arthur: false, isabella: false, ricardo: false };
+            state.inlineOptions = [];
             visualDNA.face = { shape: null, symmetry: null, harmony: null, proportions: null, confidence: 0 };
             visualDNA.color = { skinTone: null, undertone: null, contrast: null, season: null, confidence: 0 };
             visualDNA.hair = { texture: null, density: null, volume: null, confidence: 0 };
@@ -2249,7 +2406,8 @@
             const reader = new FileReader();
             reader.onload = async function(e) {
                 state.photoData = e.target.result;
-                addMessage(null, '📸 Foto enviada!', 'sent', state.photoData);
+                addUserMessage('📸 Foto enviada!');
+                addMessage(null, '📸', 'sent', state.photoData);
                 const agent = agents[state.currentAgent] || agents.helena;
                 await sendMessage(agent, '✅ Foto recebida! Analisando...');
                 await performAnalysis();
@@ -2261,11 +2419,10 @@
         fileInput.addEventListener('change', handlePhotoUpload);
         showLanding();
 
-        console.log('🧬 HairOS Studio - PERSONALIZADO COM IMAGENS');
+        console.log('🧬 HairOS Studio - VERSÃO COMPLETA');
+        console.log('✅ Respostas do usuário aparecem à direita');
+        console.log('✅ Botões de opção aparecem junto com a pergunta');
         console.log('✅ Cada especialista exibe recomendações únicas');
-        console.log('✅ Arthur: Cortes + Dicas de finalização + Acessórios');
-        console.log('✅ Isabella: Cores + Paleta de roupas + Maquiagem');
-        console.log('✅ Ricardo: Cortes + Produtos + Manutenção');
         console.log('✅ Todas as imagens são reais e clicáveis');
     </script>
 </body>
