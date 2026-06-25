@@ -1252,6 +1252,7 @@
             visualDNA.style.profileName = profileNames[bestStyle] || 'Perfil Personalizado';
             visualDNA.style.compatibility = bestScore;
 
+            // RECOMENDAÇÕES DE CORTES
             const allCuts = Object.values(HAIRCUTS_LIBRARY);
             const compatibleCuts = allCuts.filter(cut => {
                 const faceCompatible = cut.faceShapeCompatibility && 
@@ -1279,6 +1280,7 @@
 
             const topCuts = scoredCuts.sort((a, b) => b.score - a.score).slice(0, 5);
 
+            // RECOMENDAÇÕES DE CORES
             const compatibleColors = Object.values(COLORS_LIBRARY).filter(color => {
                 let score = 0;
                 if (color.undertone && color.undertone.includes(visualDNA.color.undertone)) score += 30;
@@ -1289,6 +1291,7 @@
             });
             const topColors = compatibleColors.length > 0 ? compatibleColors.slice(0, 5) : Object.values(COLORS_LIBRARY).slice(0, 5);
             
+            // PRODUTOS
             const topProducts = Object.values(PRODUCTS_LIBRARY).slice(0, 5);
 
             visualDNA.recommendations.cuts = topCuts;
@@ -1513,7 +1516,7 @@
             </div>`;
         }
 
-        function renderCarousel(items, type) {
+        function renderCarousel(items) {
             if (!items || items.length === 0) {
                 return `<div style="color:#999;font-size:12px;padding:8px 0;">Nenhum item disponível</div>`;
             }
@@ -1543,6 +1546,7 @@
 
             let sectionsHtml = '';
 
+            // ARTHUR - Visagismo
             if (agentKey === 'arthur') {
                 sectionsHtml += `
                     <div class="rec-section">
@@ -1550,7 +1554,7 @@
                             <img src="https://images.unsplash.com/photo-1589310243389-96a5483213a8?w=30&h=30&fit=crop" alt="Cortes" />
                             Cortes que Harmonizam com seu Rosto
                         </div>
-                        ${renderCarousel(cuts, 'cuts')}
+                        ${renderCarousel(cuts)}
                     </div>
                     <div class="rec-section">
                         <div class="rec-section-title">
@@ -1575,14 +1579,16 @@
                         </div>
                     </div>
                 `;
-            } else if (agentKey === 'isabella') {
+            }
+            // ISABELLA - Colorimetria
+            else if (agentKey === 'isabella') {
                 sectionsHtml += `
                     <div class="rec-section">
                         <div class="rec-section-title">
                             <img src="https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=30&h=30&fit=crop" alt="Cores" />
                             Cores de Cabelo Ideais
                         </div>
-                        ${renderCarousel(colors, 'colors')}
+                        ${renderCarousel(colors)}
                     </div>
                     <div class="rec-section">
                         <div class="rec-section-title">
@@ -1607,21 +1613,23 @@
                         </div>
                     </div>
                 `;
-            } else if (agentKey === 'ricardo') {
+            }
+            // RICARDO - Cortes
+            else if (agentKey === 'ricardo') {
                 sectionsHtml += `
                     <div class="rec-section">
                         <div class="rec-section-title">
                             <img src="https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=30&h=30&fit=crop" alt="Cortes" />
                             Cortes para sua Textura
                         </div>
-                        ${renderCarousel(cuts, 'cuts')}
+                        ${renderCarousel(cuts)}
                     </div>
                     <div class="rec-section">
                         <div class="rec-section-title">
                             <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=30&h=30&fit=crop" alt="Produtos" />
                             Produtos de Finalização
                         </div>
-                        ${renderCarousel(products, 'products')}
+                        ${renderCarousel(products)}
                     </div>
                     <div class="rec-section">
                         <div class="rec-section-title">
@@ -2427,10 +2435,10 @@
         console.log('🧬 HairOS Studio - VERSÃO COMPLETA CORRIGIDA');
         console.log('✅ Respostas do usuário aparecem à direita');
         console.log('✅ Botões de opção aparecem junto com a pergunta');
+        console.log('✅ Diagnóstico e recomendações com imagens');
         console.log('✅ Cada especialista exibe recomendações únicas');
-        console.log('✅ Todas as imagens são reais e clicáveis');
         console.log('✅ Upload de foto funcional');
         console.log('✅ Todos os agentes funcionando');
     </script>
 </body>
-</html>
+</html> 
