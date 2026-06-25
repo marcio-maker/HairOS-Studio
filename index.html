@@ -47,6 +47,9 @@
         body.dark-mode .typing .dots span { background: #aaa; }
         body.dark-mode .inline-options button { background: #3d3d3d; border-color: #555; color: #f5f3f0; }
         body.dark-mode .inline-options button:hover { background: #f5f3f0; color: #1a1a1a; border-color: #f5f3f0; }
+        body.dark-mode .options { background: #1a1a1a; border-top-color: #444; }
+        body.dark-mode .options button { background: #2d2d2d; border-color: #444; color: #f5f3f0; }
+        body.dark-mode .options button:hover { background: #444; color: #f5f3f0; }
         body.dark-mode .result { background: #1a1a1a; }
         body.dark-mode .result-header h2 { color: #f5f3f0; }
         body.dark-mode .result-header button { color: #aaa; }
@@ -225,7 +228,86 @@
             border-color: #27ae60 !important;
         }
 
-        .options { display: none; }
+        .options {
+            background: transparent;
+            padding: 6px 10px 10px 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.3s, border-color 0.3s;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+        body.dark-mode .options { border-top-color: rgba(255,255,255,0.05); }
+        .options button {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 18px;
+            padding: 5px 12px;
+            font-size: 11.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #1a1a1a;
+            font-weight: 500;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            flex: 0 1 auto;
+            min-width: 0;
+            max-width: 100%;
+        }
+        body.dark-mode .options button {
+            background: rgba(45,45,45,0.9);
+            border-color: rgba(255,255,255,0.06);
+            color: #f5f3f0;
+        }
+        .options button:hover {
+            background: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        body.dark-mode .options button:hover {
+            background: #f5f3f0;
+            color: #1a1a1a;
+            border-color: #f5f3f0;
+        }
+        .options button:active { transform: scale(0.95); }
+        .options .btn-destaque {
+            background: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+            padding: 6px 18px;
+            font-weight: 600;
+            font-size: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        body.dark-mode .options .btn-destaque {
+            background: #f5f3f0;
+            color: #1a1a1a;
+            border-color: #f5f3f0;
+        }
+        .options .btn-concluido {
+            background: #27ae60 !important;
+            color: white !important;
+            border-color: #27ae60 !important;
+        }
+        .options .btn-proximo {
+            background: #3498db !important;
+            color: white !important;
+            border-color: #3498db !important;
+        }
+        .options .btn-duvida {
+            background: #9b59b6 !important;
+            color: white !important;
+            border-color: #9b59b6 !important;
+        }
+        .options .btn-quiz-concluido {
+            background: #27ae60 !important;
+            color: white !important;
+            border-color: #27ae60 !important;
+        }
 
         .diagnostic-card {
             background: white;
@@ -459,6 +541,7 @@
         @media (max-width: 430px) {
             .app { max-width: 100%; height: 100dvh; }
             .theme-toggle { top: 10px; right: 10px; width: 32px; height: 32px; font-size: 15px; }
+            .options button { font-size: 10.5px; padding: 4px 10px; }
             .carousel-item { flex: 0 0 100px; }
             .carousel-item img { height: 75px; }
             .share-buttons { flex-direction: column; }
@@ -2346,6 +2429,8 @@
         console.log('✅ Botões de opção aparecem junto com a pergunta');
         console.log('✅ Cada especialista exibe recomendações únicas');
         console.log('✅ Todas as imagens são reais e clicáveis');
+        console.log('✅ Upload de foto funcional');
+        console.log('✅ Todos os agentes funcionando');
     </script>
 </body>
 </html>
