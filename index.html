@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>HairOS Studio Revolution 3.0</title>
+    <title>HairOS Studio</title>
     
     <!-- OpenCV.js -->
     <script async src="https://docs.opencv.org/4.9.0/opencv.js" onload="onOpenCvReady()" type="text/javascript"></script>
@@ -77,6 +77,11 @@
         body.dark-mode .summary-card { background: #2d2d2d; border-color: #444; }
         body.dark-mode .summary-card .value { color: #f5f3f0; }
         body.dark-mode .summary-card .label { color: #999; }
+        body.dark-mode .recomendacoes-card { background: #2d2d2d; border-color: #444; }
+        body.dark-mode .recomendacoes-card .title { color: #f5f3f0; }
+        body.dark-mode .recomendacoes-card .rec-item { border-bottom-color: #444; }
+        body.dark-mode .recomendacoes-card .rec-item .rec-name { color: #f5f3f0; }
+        body.dark-mode .recomendacoes-card .rec-item .rec-desc { color: #aaa; }
 
         .app { width: 100%; max-width: 430px; height: 100vh; background: #e8e4de; display: flex; flex-direction: column; position: relative; overflow: hidden; transition: background 0.3s; }
         .landing { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 30px 24px; background: #f5f3f0; text-align: center; transition: background 0.3s; overflow-y: auto; }
@@ -212,6 +217,92 @@
         .summary-row .value { font-weight: 700; color: #1a1a1a; }
         .summary-row .value.highlight { color: #27ae60; }
 
+        .recomendacoes-card {
+            background: white;
+            border-radius: 14px;
+            padding: 14px;
+            margin: 6px 0;
+            border: 1px solid rgba(0,0,0,0.06);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: all 0.3s;
+        }
+        .recomendacoes-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+        .recomendacoes-card .header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+        .recomendacoes-card .header .card-image { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #e8e4de; }
+        .recomendacoes-card .header .title { font-weight: 700; font-size: 14px; color: #1a1a1a; }
+        .recomendacoes-card .header .badge { font-size: 9px; background: #e67e22; color: white; padding: 2px 8px; border-radius: 12px; }
+
+        .rec-carousel {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 0 8px 0;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+        .rec-carousel::-webkit-scrollbar { width: 0px; height: 0px; background: transparent; }
+        .rec-carousel { scrollbar-width: none; -ms-overflow-style: none; }
+        .rec-carousel-item {
+            flex: 0 0 100px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            padding: 6px;
+            text-align: center;
+            scroll-snap-align: start;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .rec-carousel-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .rec-carousel-item img {
+            width: 100%;
+            height: 80px;
+            border-radius: 6px;
+            object-fit: cover;
+            margin-bottom: 3px;
+        }
+        .rec-carousel-item .rec-name {
+            font-weight: 600;
+            font-size: 10px;
+            color: #1a1a1a;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .rec-carousel-item .rec-desc {
+            font-size: 8px;
+            color: #666;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        body.dark-mode .rec-carousel-item { background: #3d3d3d; border-color: #444; }
+        body.dark-mode .rec-carousel-item .rec-name { color: #f5f3f0; }
+        body.dark-mode .rec-carousel-item .rec-desc { color: #999; }
+
+        .rec-section {
+            margin-top: 8px;
+        }
+        .rec-section:first-child { margin-top: 0; }
+        .rec-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        body.dark-mode .rec-section-title { color: #f5f3f0; }
+        .rec-section-title img {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
         .duvidas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 6px 0; }
         .duvidas-grid .btn-duvida-item { 
             background: rgba(255,255,255,0.95); 
@@ -236,31 +327,6 @@
         .duvidas-grid .btn-duvida-item .duvida-num { font-weight: 700; color: #9b59b6; font-size: 10px; flex-shrink: 0; }
         body.dark-mode .duvidas-grid .btn-duvida-item .duvida-num { color: #af7ac5; }
         .duvidas-grid .btn-duvida-item .duvida-texto-curto { flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-
-        /* Card de recomendações */
-        .recomendacoes-card {
-            background: white;
-            border-radius: 14px;
-            padding: 14px;
-            margin: 6px 0;
-            border: 1px solid rgba(0,0,0,0.06);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            transition: all 0.3s;
-        }
-        .recomendacoes-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-        .recomendacoes-card .header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-        .recomendacoes-card .header .title { font-weight: 700; font-size: 14px; color: #1a1a1a; }
-        .recomendacoes-card .header .badge { font-size: 9px; background: #e67e22; color: white; padding: 2px 8px; border-radius: 12px; }
-        .recomendacoes-card .rec-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; border-bottom: 1px solid #f5f5f5; }
-        .recomendacoes-card .rec-item:last-child { border-bottom: none; }
-        .recomendacoes-card .rec-item .rec-icon { font-size: 16px; }
-        .recomendacoes-card .rec-item .rec-name { font-weight: 600; color: #1a1a1a; }
-        .recomendacoes-card .rec-item .rec-desc { color: #666; font-size: 11px; }
-        body.dark-mode .recomendacoes-card { background: #2d2d2d; border-color: #444; }
-        body.dark-mode .recomendacoes-card .header .title { color: #f5f3f0; }
-        body.dark-mode .recomendacoes-card .rec-item { border-bottom-color: #444; }
-        body.dark-mode .recomendacoes-card .rec-item .rec-name { color: #f5f3f0; }
-        body.dark-mode .recomendacoes-card .rec-item .rec-desc { color: #aaa; }
 
         .result { display: none; flex-direction: column; height: 100%; background: #f5f3f0; padding: 16px; overflow-y: auto; transition: background 0.3s; }
         .result.active { display: flex; }
@@ -347,6 +413,8 @@
             .summary-grid { grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
             .summary-grid .item .icon-img { width: 22px; height: 22px; }
             .summary-grid .item .value { font-size: 10px; }
+            .rec-carousel-item { flex: 0 0 80px; }
+            .rec-carousel-item img { height: 65px; }
         }
     </style>
 </head>
@@ -546,24 +614,118 @@
             style: { profileName: null, compatibility: 0, topStyles: [] },
             recommendations: { cuts: [], colors: [], products: [] },
             isComplete: false,
+            recomendacoesExibidas: false,
             timestamp: null
         };
 
         // ============================================================
-        // 3. HAIROS LIBRARY
+        // 3. HAIROS LIBRARY COM TODOS OS CORTES
         // ============================================================
         const HAIRCUTS_LIBRARY = {
-            pompadour: { id: 'pompadour', name: 'Pompadour', style: 'Clássico', length: 'short', origin: 'EUA', maintenance: 'medium', volume: 'high', textureCompatibility: ['straight', 'wavy'], faceShapeCompatibility: ['oval', 'square', 'round'], trendLevel: 85, image: 'https://images.unsplash.com/photo-1589310243389-96a5483213a8?w=400&h=400&fit=crop' },
-            sidePart: { id: 'sidePart', name: 'Risco Lateral', style: 'Clássico', length: 'short', origin: 'EUA', maintenance: 'low', volume: 'medium', textureCompatibility: ['straight', 'wavy'], faceShapeCompatibility: ['oval', 'square', 'round', 'diamond'], trendLevel: 90, image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop' },
-            quiff: { id: 'quiff', name: 'Quiff', style: 'Moderno', length: 'short', origin: 'EUA', maintenance: 'medium', volume: 'high', textureCompatibility: ['straight', 'wavy', 'curly'], faceShapeCompatibility: ['oval', 'round', 'square'], trendLevel: 92, image: 'https://images.unsplash.com/photo-1595152452543-e5fc28ebc2b8?w=400&h=400&fit=crop' },
-            frenchCrop: { id: 'frenchCrop', name: 'Corte Francês', style: 'Clássico', length: 'short', origin: 'França', maintenance: 'low', volume: 'low', textureCompatibility: ['straight', 'wavy', 'curly'], faceShapeCompatibility: ['oval', 'round', 'diamond', 'square'], trendLevel: 88, image: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=400&h=400&fit=crop' },
-            texturedCrop: { id: 'texturedCrop', name: 'Corte Texturizado', style: 'Moderno', length: 'short', origin: 'UK', maintenance: 'medium', volume: 'medium', textureCompatibility: ['curly', 'coily', 'wavy'], faceShapeCompatibility: ['oval', 'square', 'round'], trendLevel: 93, image: 'https://images.unsplash.com/photo-1590031905470-a1a1feacbb0b?w=400&h=400&fit=crop' },
-            layerCut: { id: 'layerCut', name: 'Corte em Camadas', style: 'Moderno', length: 'medium', origin: 'EUA', maintenance: 'medium', volume: 'medium', textureCompatibility: ['straight', 'wavy'], faceShapeCompatibility: ['oval', 'diamond', 'square'], trendLevel: 90, image: 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=400&h=400&fit=crop' },
-            modernShag: { id: 'modernShag', name: 'Shag Moderno', style: 'Moderno', length: 'medium', origin: 'UK', maintenance: 'medium', volume: 'high', textureCompatibility: ['wavy', 'curly'], faceShapeCompatibility: ['oval', 'round', 'square'], trendLevel: 94, image: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?w=400&h=400&fit=crop' },
-            bobCut: { id: 'bobCut', name: 'Corte Bob', style: 'Clássico', length: 'short', origin: 'França', maintenance: 'medium', volume: 'medium', textureCompatibility: ['straight', 'wavy'], faceShapeCompatibility: ['oval', 'square', 'round', 'diamond'], trendLevel: 95, image: 'https://images.unsplash.com/photo-1567894340311-5b0c9b4e1a4f?w=400&h=400&fit=crop' },
-            lobCut: { id: 'lobCut', name: 'Corte Lob', style: 'Moderno', length: 'medium', origin: 'EUA', maintenance: 'medium', volume: 'medium', textureCompatibility: ['straight', 'wavy'], faceShapeCompatibility: ['oval', 'square', 'round', 'diamond'], trendLevel: 96, image: 'https://images.unsplash.com/photo-1567894340311-5b0c9b4e1a4f?w=400&h=400&fit=crop' },
-            pixieCut: { id: 'pixieCut', name: 'Corte Pixie', style: 'Moderno', length: 'short', origin: 'EUA', maintenance: 'high', volume: 'medium', textureCompatibility: ['straight', 'wavy', 'curly'], faceShapeCompatibility: ['oval', 'heart', 'diamond'], trendLevel: 87, image: 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=400&h=400&fit=crop' },
-            undercut: { id: 'undercut', name: 'Undercut', style: 'Moderno', length: 'short', origin: 'EUA', maintenance: 'high', volume: 'medium', textureCompatibility: ['straight', 'wavy', 'curly', 'coily'], faceShapeCompatibility: ['oval', 'square', 'round'], trendLevel: 91, image: 'https://images.unsplash.com/photo-1590031905470-a1a1feacbb0b?w=400&h=400&fit=crop' }
+            pompadour: { 
+                id: 'pompadour', name: 'Pompadour', style: 'Clássico', length: 'short', 
+                origin: 'EUA', maintenance: 'medium', volume: 'high', 
+                textureCompatibility: ['straight', 'wavy'], 
+                faceShapeCompatibility: ['oval', 'square', 'round'], 
+                trendLevel: 85, 
+                image: 'https://images.unsplash.com/photo-1589310243389-96a5483213a8?w=400&h=400&fit=crop' 
+            },
+            sidePart: { 
+                id: 'sidePart', name: 'Risco Lateral', style: 'Clássico', length: 'short', 
+                origin: 'EUA', maintenance: 'low', volume: 'medium', 
+                textureCompatibility: ['straight', 'wavy'], 
+                faceShapeCompatibility: ['oval', 'square', 'round', 'diamond'], 
+                trendLevel: 90, 
+                image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop' 
+            },
+            quiff: { 
+                id: 'quiff', name: 'Quiff', style: 'Moderno', length: 'short', 
+                origin: 'EUA', maintenance: 'medium', volume: 'high', 
+                textureCompatibility: ['straight', 'wavy', 'curly'], 
+                faceShapeCompatibility: ['oval', 'round', 'square'], 
+                trendLevel: 92, 
+                image: 'https://images.unsplash.com/photo-1595152452543-e5fc28ebc2b8?w=400&h=400&fit=crop' 
+            },
+            frenchCrop: { 
+                id: 'frenchCrop', name: 'Corte Francês', style: 'Clássico', length: 'short', 
+                origin: 'França', maintenance: 'low', volume: 'low', 
+                textureCompatibility: ['straight', 'wavy', 'curly'], 
+                faceShapeCompatibility: ['oval', 'round', 'diamond', 'square'], 
+                trendLevel: 88, 
+                image: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=400&h=400&fit=crop' 
+            },
+            texturedCrop: { 
+                id: 'texturedCrop', name: 'Corte Texturizado', style: 'Moderno', length: 'short', 
+                origin: 'UK', maintenance: 'medium', volume: 'medium', 
+                textureCompatibility: ['curly', 'coily', 'wavy'], 
+                faceShapeCompatibility: ['oval', 'square', 'round'], 
+                trendLevel: 93, 
+                image: 'https://images.unsplash.com/photo-1590031905470-a1a1feacbb0b?w=400&h=400&fit=crop' 
+            },
+            layerCut: { 
+                id: 'layerCut', name: 'Corte em Camadas', style: 'Moderno', length: 'medium', 
+                origin: 'EUA', maintenance: 'medium', volume: 'medium', 
+                textureCompatibility: ['straight', 'wavy'], 
+                faceShapeCompatibility: ['oval', 'diamond', 'square'], 
+                trendLevel: 90, 
+                image: 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=400&h=400&fit=crop' 
+            },
+            modernShag: { 
+                id: 'modernShag', name: 'Shag Moderno', style: 'Moderno', length: 'medium', 
+                origin: 'UK', maintenance: 'medium', volume: 'high', 
+                textureCompatibility: ['wavy', 'curly'], 
+                faceShapeCompatibility: ['oval', 'round', 'square'], 
+                trendLevel: 94, 
+                image: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?w=400&h=400&fit=crop' 
+            },
+            bobCut: { 
+                id: 'bobCut', name: 'Corte Bob', style: 'Clássico', length: 'short', 
+                origin: 'França', maintenance: 'medium', volume: 'medium', 
+                textureCompatibility: ['straight', 'wavy'], 
+                faceShapeCompatibility: ['oval', 'square', 'round', 'diamond'], 
+                trendLevel: 95, 
+                image: 'https://images.unsplash.com/photo-1567894340311-5b0c9b4e1a4f?w=400&h=400&fit=crop' 
+            },
+            lobCut: { 
+                id: 'lobCut', name: 'Corte Lob', style: 'Moderno', length: 'medium', 
+                origin: 'EUA', maintenance: 'medium', volume: 'medium', 
+                textureCompatibility: ['straight', 'wavy'], 
+                faceShapeCompatibility: ['oval', 'square', 'round', 'diamond'], 
+                trendLevel: 96, 
+                image: 'https://images.unsplash.com/photo-1567894340311-5b0c9b4e1a4f?w=400&h=400&fit=crop' 
+            },
+            pixieCut: { 
+                id: 'pixieCut', name: 'Corte Pixie', style: 'Moderno', length: 'short', 
+                origin: 'EUA', maintenance: 'high', volume: 'medium', 
+                textureCompatibility: ['straight', 'wavy', 'curly'], 
+                faceShapeCompatibility: ['oval', 'heart', 'diamond'], 
+                trendLevel: 87, 
+                image: 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=400&h=400&fit=crop' 
+            },
+            undercut: { 
+                id: 'undercut', name: 'Undercut', style: 'Moderno', length: 'short', 
+                origin: 'EUA', maintenance: 'high', volume: 'medium', 
+                textureCompatibility: ['straight', 'wavy', 'curly', 'coily'], 
+                faceShapeCompatibility: ['oval', 'square', 'round'], 
+                trendLevel: 91, 
+                image: 'https://images.unsplash.com/photo-1590031905470-a1a1feacbb0b?w=400&h=400&fit=crop' 
+            },
+            fadeCut: {
+                id: 'fadeCut', name: 'Corte Fade', style: 'Moderno', length: 'short',
+                origin: 'EUA', maintenance: 'high', volume: 'low',
+                textureCompatibility: ['straight', 'wavy', 'curly', 'coily'],
+                faceShapeCompatibility: ['oval', 'square', 'round', 'diamond'],
+                trendLevel: 89,
+                image: 'https://images.unsplash.com/photo-1589310243389-96a5483213a8?w=400&h=400&fit=crop'
+            },
+            longLayered: {
+                id: 'longLayered', name: 'Camadas Longas', style: 'Moderno', length: 'long',
+                origin: 'EUA', maintenance: 'medium', volume: 'high',
+                textureCompatibility: ['straight', 'wavy'],
+                faceShapeCompatibility: ['oval', 'diamond', 'heart'],
+                trendLevel: 88,
+                image: 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=400&h=400&fit=crop'
+            }
         };
 
         const COLORS_LIBRARY = {
@@ -638,129 +800,71 @@
             arthur: {
                 titulo: 'Dúvidas sobre Visagismo',
                 perguntas: [
-                    { pergunta: 'O que é visagismo e como ele pode me ajudar?', resposta: 'O visagismo é a arte de estudar as proporções do rosto, personalidade e estilo de vida para criar um visual harmonioso.' },
-                    { pergunta: 'Como saber qual formato de rosto eu tenho?', resposta: 'Prenda o cabelo para trás e observe as proporções. Os principais formatos são: oval, redondo, quadrado, diamante e retangular.' },
-                    { pergunta: 'Qual corte combina mais com meu formato de rosto?', resposta: 'Para rostos ovais, praticamente tudo funciona; redondos ficam bem com cortes que alongam; quadrados se beneficiam de textura e movimento; diamantes pedem volume no topo; retangulares ficam ótimos com franjas.' },
-                    { pergunta: 'Como escolher um estilo que combine com minha personalidade?', resposta: 'Seu estilo deve refletir quem você é! Pessoas clássicas preferem cortes estruturados; modernos gostam de tendências; naturais preferem algo fluido; criativos adoram experimentar.' },
-                    { pergunta: 'Visagismo funciona para todos os tipos de cabelo?', resposta: 'Sim! O visagismo é universal e se adapta a liso, ondulado, cacheado ou crespo.' }
+                    { pergunta: 'O que é visagismo?', resposta: 'É a arte de estudar as proporções do rosto para criar um visual harmonioso.' },
+                    { pergunta: 'Como saber meu formato de rosto?', resposta: 'Prenda o cabelo e observe: oval, redondo, quadrado, diamante ou retangular.' },
+                    { pergunta: 'Qual corte combina com meu formato?', resposta: 'Oval: quase todos; Redondo: cortes que alongam; Quadrado: textura e movimento.' },
+                    { pergunta: 'Visagismo funciona para todos os cabelos?', resposta: 'Sim! Se adapta a liso, ondulado, cacheado ou crespo.' }
                 ]
             },
             isabella: {
                 titulo: 'Dúvidas sobre Colorimetria',
                 perguntas: [
-                    { pergunta: 'O que é colorimetria pessoal e por que é importante?', resposta: 'A colorimetria pessoal estuda quais cores harmonizam com seu tom de pele, olhos e cabelo natural.' },
-                    { pergunta: 'Como descobrir minha estação de cores?', resposta: 'As estações são: Primavera (quente/baixo), Verão (frio/baixo), Outono (quente/alto), Inverno (frio/alto).' },
-                    { pergunta: 'Qual tom de cabelo combina mais comigo?', resposta: 'Peles quentes ficam incríveis com tons de cobre, dourado e caramelo; peles frias com tons de cinza, platinado e castanho frio.' },
-                    { pergunta: 'Como fazer transição de cor sem danificar os fios?', resposta: 'Faça gradualmente usando técnicas como mechas ou balayage, e invista em tratamentos hidratantes.' },
-                    { pergunta: 'Cores quentes ou frias: qual a diferença?', resposta: 'Cores quentes têm base amarelada; cores frias têm base acinzentada.' }
+                    { pergunta: 'O que é colorimetria pessoal?', resposta: 'Estuda quais cores harmonizam com seu tom de pele, olhos e cabelo.' },
+                    { pergunta: 'Como descobrir minha estação?', resposta: 'Primavera (quente/baixo), Verão (frio/baixo), Outono (quente/alto), Inverno (frio/alto).' },
+                    { pergunta: 'Qual tom de cabelo combina comigo?', resposta: 'Peles quentes: cobre/dourado; Peles frias: cinza/platinado.' }
                 ]
             },
             ricardo: {
-                titulo: 'Dúvidas sobre Cortes e Tendências',
+                titulo: 'Dúvidas sobre Cortes',
                 perguntas: [
-                    { pergunta: 'Quais são as principais tendências de corte?', resposta: 'Bob texturizado, Shaggy, Long Bob, cortes assimétricos e franjas curtain.' },
-                    { pergunta: 'Como escolher um corte que valorize meu tipo de cabelo?', resposta: 'Lisos: cortes retos; Ondulados: camadas; Cacheados: cortes que respeitam os cachos.' },
-                    { pergunta: 'Qual a manutenção ideal para cada tipo de corte?', resposta: 'Curtos: 3-4 semanas; Médios: 6-8 semanas; Longos: até 3 meses.' },
-                    { pergunta: 'Como adaptar um corte para meu estilo de vida?', resposta: 'Ativo: cortes práticos; Formal: cortes polidos; Versátil: cortes que podem ser usados de várias formas.' },
-                    { pergunta: 'O que é o corte "pixie" e para quem ele indica?', resposta: 'É um corte curto e ousado, perfeito para rostos ovais e em formato de coração.' }
+                    { pergunta: 'Quais as tendências atuais?', resposta: 'Bob texturizado, Shaggy, Long Bob e franjas curtain.' },
+                    { pergunta: 'Como escolher corte para meu cabelo?', resposta: 'Liso: cortes retos; Ondulado: camadas; Cacheado: cortes que respeitam os cachos.' },
+                    { pergunta: 'Qual a manutenção ideal?', resposta: 'Curtos: 3-4 semanas; Médios: 6-8 semanas; Longos: até 3 meses.' }
                 ]
             }
         };
 
         // ============================================================
-        // 6. QUIZ COMPLEMENTAR - PERGUNTAS DE PREFERÊNCIA
+        // 6. QUIZ DE PREFERÊNCIAS
         // ============================================================
         function getQuizArthur() {
-            const faceShape = visualDNA.face.shape || 'oval';
-            
             return {
                 titulo: '📋 Preferências de Estilo - Visagismo',
                 introducao: 'Suas respostas nos ajudam a refinar as recomendações:',
                 perguntas: [
-                    { 
-                        pergunta: `Seu formato de rosto é ${faceShape.charAt(0).toUpperCase() + faceShape.slice(1)}. Qual estilo você prefere?`,
-                        opcoes: ['Clássico e atemporal', 'Moderno e inovador', 'Natural e descontraído', 'Criativo e artístico']
-                    },
-                    { 
-                        pergunta: 'Como você quer se sentir com seu novo visual?',
-                        opcoes: ['Confiante e poderoso', 'Sofisticado e elegante', 'Leve e natural', 'Autêntico e único']
-                    },
-                    { 
-                        pergunta: 'Qual a ocasião principal para seu novo estilo?',
-                        opcoes: ['Trabalho e ambiente profissional', 'Eventos sociais e festas', 'Dia a dia e conforto', 'Todas as ocasiões']
-                    },
-                    { 
-                        pergunta: 'O que você mais valoriza em um corte?',
-                        opcoes: ['Facilidade de manutenção', 'Versatilidade', 'Tendência e modernidade', 'Personalidade e atitude']
-                    },
-                    { 
-                        pergunta: 'Como você descreveria seu estilo pessoal?',
-                        opcoes: ['Clássico e tradicional', 'Despojado e casual', 'Moderno e arrojado', 'Eclético e versátil']
-                    }
+                    { pergunta: 'Qual estilo você prefere?', opcoes: ['Clássico', 'Moderno', 'Natural', 'Ousado'] },
+                    { pergunta: 'Como quer se sentir com seu novo visual?', opcoes: ['Confiante', 'Sofisticado', 'Leve', 'Autêntico'] },
+                    { pergunta: 'Qual a ocasião principal?', opcoes: ['Trabalho', 'Eventos sociais', 'Dia a dia', 'Todas'] },
+                    { pergunta: 'O que mais valoriza em um corte?', opcoes: ['Facilidade', 'Versatilidade', 'Tendência', 'Personalidade'] },
+                    { pergunta: 'Como descreveria seu estilo pessoal?', opcoes: ['Clássico', 'Casual', 'Arrojado', 'Eclético'] }
                 ]
             };
         }
 
         function getQuizIsabella() {
-            const undertone = visualDNA.color.undertone || 'neutro';
-            const season = visualDNA.color.season || 'outono';
-            
             return {
                 titulo: '📋 Preferências de Cor - Colorimetria',
                 introducao: 'Suas respostas nos ajudam a refinar as recomendações:',
                 perguntas: [
-                    { 
-                        pergunta: `Seu subtom é ${undertone.charAt(0).toUpperCase() + undertone.slice(1)}. Qual efeito você busca com a cor?`,
-                        opcoes: ['Iluminar e destacar', 'Suavizar e harmonizar', 'Criar contraste', 'Manter naturalidade']
-                    },
-                    { 
-                        pergunta: 'Qual intensidade de cor você prefere?',
-                        opcoes: ['Tons suaves e delicados', 'Tons médios e equilibrados', 'Tons intensos e marcantes', 'Tons vibrantes e vivos']
-                    },
-                    { 
-                        pergunta: 'Como você quer se sentir com a nova cor?',
-                        opcoes: ['Mais radiante e iluminado', 'Mais sofisticado', 'Mais natural', 'Mais ousado e criativo']
-                    },
-                    { 
-                        pergunta: `Baseado na sua estação (${season.charAt(0).toUpperCase() + season.slice(1)}), o que te atrai mais?`,
-                        opcoes: ['Cores quentes e aconchegantes', 'Cores frias e elegantes', 'Cores claras e vibrantes', 'Cores escuras e profundas']
-                    },
-                    { 
-                        pergunta: 'Qual o seu objetivo principal com a mudança de cor?',
-                        opcoes: ['Rejuvenescimento', 'Renovação do visual', 'Expressão pessoal', 'Praticidade e manutenção']
-                    }
+                    { pergunta: 'Qual efeito você busca com a cor?', opcoes: ['Iluminar', 'Suavizar', 'Contraste', 'Naturalidade'] },
+                    { pergunta: 'Qual intensidade de cor prefere?', opcoes: ['Suave', 'Médio', 'Intenso', 'Vibrante'] },
+                    { pergunta: 'Como quer se sentir com a nova cor?', opcoes: ['Radiante', 'Sofisticado', 'Natural', 'Ousado'] },
+                    { pergunta: 'O que te atrai mais?', opcoes: ['Cores quentes', 'Cores frias', 'Cores claras', 'Cores escuras'] },
+                    { pergunta: 'Qual o objetivo principal?', opcoes: ['Rejuvenescimento', 'Renovação', 'Expressão', 'Praticidade'] }
                 ]
             };
         }
 
         function getQuizRicardo() {
-            const texture = visualDNA.hair.texture || 'ondulado';
-            const faceShape = visualDNA.face.shape || 'oval';
-            
             return {
                 titulo: '📋 Preferências de Corte - Cortes',
                 introducao: 'Suas respostas nos ajudam a refinar as recomendações:',
                 perguntas: [
-                    { 
-                        pergunta: `Seu cabelo tem textura ${texture}. Qual acabamento você prefere?`,
-                        opcoes: ['Liso e alinhado', 'Movimento e ondas', 'Volume e textura', 'Definição e controle']
-                    },
-                    { 
-                        pergunta: 'Qual comprimento de cabelo você prefere?',
-                        opcoes: ['Curto e prático', 'Médio e versátil', 'Longo e clássico', 'Assimétrico e moderno']
-                    },
-                    { 
-                        pergunta: 'Quanto tempo você dedica à manutenção do cabelo?',
-                        opcoes: ['Pouco tempo (até 5min)', 'Tempo médio (15min)', 'Muito tempo (30min+)', 'Não me importo com o tempo']
-                    },
-                    { 
-                        pergunta: 'Qual a sua prioridade ao escolher um corte?',
-                        opcoes: ['Praticidade', 'Estilo e tendência', 'Versatilidade', 'Naturalidade']
-                    },
-                    { 
-                        pergunta: `Considerando seu formato de rosto (${faceShape}), o que você busca?`,
-                        opcoes: ['Equilíbrio e harmonia', 'Modernidade e inovação', 'Conforto e praticidade', 'Personalidade e atitude']
-                    }
+                    { pergunta: 'Qual acabamento prefere?', opcoes: ['Liso', 'Movimento', 'Volume', 'Definição'] },
+                    { pergunta: 'Qual comprimento prefere?', opcoes: ['Curto', 'Médio', 'Longo', 'Assimétrico'] },
+                    { pergunta: 'Quanto tempo dedica à manutenção?', opcoes: ['Pouco', 'Médio', 'Muito', 'Não importa'] },
+                    { pergunta: 'Qual a sua prioridade?', opcoes: ['Praticidade', 'Estilo', 'Versatilidade', 'Naturalidade'] },
+                    { pergunta: 'O que busca no corte?', opcoes: ['Equilíbrio', 'Modernidade', 'Conforto', 'Atitude'] }
                 ]
             };
         }
@@ -964,7 +1068,6 @@
             if (hair.volume === 'alto') { compatibility.criativo += 10; compatibility.ousado += 10; }
             else if (hair.volume === 'baixo') { compatibility.classico += 10; compatibility.executivo += 5; }
 
-            // Preferências do usuário (coletadas no quiz)
             if (prefs.estiloPreferido === 'moderno') compatibility.moderno += 20;
             else if (prefs.estiloPreferido === 'classico') compatibility.classico += 20;
             else if (prefs.estiloPreferido === 'ousado') compatibility.ousado += 20;
@@ -1005,18 +1108,26 @@
             visualDNA.style.profileName = profileNames[bestStyle] || 'Perfil Personalizado';
             visualDNA.style.compatibility = bestScore;
 
-            const compatibleCuts = Object.values(HAIRCUTS_LIBRARY).filter(cut => {
-                return cut.faceShapeCompatibility.includes(visualDNA.face.shape) ||
-                       cut.textureCompatibility.includes(visualDNA.hair.texture);
+            // RECOMENDAÇÕES DE CORTES
+            const allCuts = Object.values(HAIRCUTS_LIBRARY);
+            const compatibleCuts = allCuts.filter(cut => {
+                const faceCompatible = cut.faceShapeCompatibility && 
+                    cut.faceShapeCompatibility.includes(visualDNA.face.shape);
+                const textureCompatible = cut.textureCompatibility && 
+                    cut.textureCompatibility.includes(visualDNA.hair.texture);
+                return faceCompatible || textureCompatible;
             });
 
-            const scoredCuts = compatibleCuts.map(cut => {
+            const cutsToScore = compatibleCuts.length > 0 ? compatibleCuts : allCuts;
+
+            const scoredCuts = cutsToScore.map(cut => {
                 let score = 0;
-                if (cut.faceShapeCompatibility.includes(visualDNA.face.shape)) score += 25;
-                if (cut.textureCompatibility.includes(visualDNA.hair.texture)) score += 20;
+                if (cut.faceShapeCompatibility && cut.faceShapeCompatibility.includes(visualDNA.face.shape)) score += 25;
+                if (cut.textureCompatibility && cut.textureCompatibility.includes(visualDNA.hair.texture)) score += 20;
                 if (cut.volume === visualDNA.hair.volume) score += 15;
                 if (visualDNA.preferences.comprimento === 'curto' && cut.length === 'short') score += 10;
                 else if (visualDNA.preferences.comprimento === 'medio' && cut.length === 'medium') score += 10;
+                else if (visualDNA.preferences.comprimento === 'longo' && cut.length === 'long') score += 10;
                 if (visualDNA.preferences.manutencao === 'baixo' && cut.maintenance === 'low') score += 10;
                 if (visualDNA.preferences.estiloPreferido === 'moderno' && cut.style === 'Moderno') score += 10;
                 if (visualDNA.preferences.estiloPreferido === 'classico' && cut.style === 'Clássico') score += 10;
@@ -1024,15 +1135,17 @@
             });
 
             const topCuts = scoredCuts.sort((a, b) => b.score - a.score).slice(0, 5);
+
             const compatibleColors = Object.values(COLORS_LIBRARY).filter(color => {
                 let score = 0;
-                if (color.undertone.includes(visualDNA.color.undertone)) score += 30;
-                if (color.season.includes(visualDNA.color.season)) score += 25;
-                if (color.contrast.includes(visualDNA.color.contrast)) score += 20;
+                if (color.undertone && color.undertone.includes(visualDNA.color.undertone)) score += 30;
+                if (color.season && color.season.includes(visualDNA.color.season)) score += 25;
+                if (color.contrast && color.contrast.includes(visualDNA.color.contrast)) score += 20;
                 if (visualDNA.preferences.tomPreferido === color.category) score += 15;
                 return score > 20;
             });
-            const topColors = compatibleColors.slice(0, 5);
+            const topColors = compatibleColors.length > 0 ? compatibleColors.slice(0, 5) : Object.values(COLORS_LIBRARY).slice(0, 5);
+            
             const topProducts = Object.values(PRODUCTS_LIBRARY).slice(0, 5);
 
             visualDNA.recommendations.cuts = topCuts;
@@ -1087,6 +1200,7 @@
             state.visualDNA = null; state.modoDuvidas = false;
             state.quizConcluido = { arthur: false, isabella: false, ricardo: false };
             visualDNA.isComplete = false;
+            visualDNA.recomendacoesExibidas = false;
             renderMessages(); renderOptions(); showLanding(); updateAgentBadges();
         }
 
@@ -1196,7 +1310,7 @@
         }
 
         // ============================================================
-        // 11. RENDER DÚVIDAS EM GRADE
+        // 11. RENDER FUNCTIONS - RECOMENDAÇÕES PERSONALIZADAS
         // ============================================================
         function renderDuvidasGrid(agentKey) {
             const duvidas = DUVIDAS_ESPECIALISTAS[agentKey];
@@ -1213,9 +1327,6 @@
             return html;
         }
 
-        // ============================================================
-        // 12. FUNÇÕES PARA CARDS DE DIAGNÓSTICO
-        // ============================================================
         function createDiagnosticCard(agentKey, title, items, description) {
             const agent = agents[agentKey];
             const cardImage = agent.cardImage || agent.avatar;
@@ -1239,42 +1350,150 @@
             </div>`;
         }
 
-        // ============================================================
-        // 13. CARD DE RECOMENDAÇÕES
-        // ============================================================
-        function createRecomendacoesCard(agentKey, cuts, colors, products) {
+        function renderCarousel(items, type) {
+            if (!items || items.length === 0) {
+                return `<div style="color:#999;font-size:12px;padding:8px 0;">Nenhum item disponível</div>`;
+            }
+            let html = `<div class="rec-carousel">`;
+            items.slice(0, 5).forEach(item => {
+                const imgUrl = item.image || 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=200&h=200&fit=crop';
+                const desc = item.style || item.category || item.purpose || '';
+                html += `
+                    <div class="rec-carousel-item" onclick="openModal('${imgUrl}', '${item.name}')">
+                        <img src="${imgUrl}" alt="${item.name}" loading="lazy" />
+                        <span class="rec-name">${item.name}</span>
+                        <span class="rec-desc">${desc}</span>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            return html;
+        }
+
+        // RECOMENDAÇÕES PERSONALIZADAS POR ESPECIALISTA
+        function createRecomendacoesCard(agentKey) {
             const agent = agents[agentKey];
             const cardImage = agent.cardImage || agent.avatar;
             
-            let cutsHtml = cuts.slice(0, 3).map(c => 
-                `<div class="rec-item"><span class="rec-icon">✂️</span><span><span class="rec-name">${c.name}</span> <span class="rec-desc">(${c.style})</span></span></div>`
-            ).join('');
-            
-            let colorsHtml = colors.slice(0, 3).map(c => 
-                `<div class="rec-item"><span class="rec-icon">🎨</span><span><span class="rec-name">${c.name}</span> <span class="rec-desc">(${c.category})</span></span></div>`
-            ).join('');
-            
-            let productsHtml = products.slice(0, 3).map(p => 
-                `<div class="rec-item"><span class="rec-icon">🧴</span><span><span class="rec-name">${p.name}</span> <span class="rec-desc">(${p.purpose})</span></span></div>`
-            ).join('');
-            
+            const cuts = visualDNA.recommendations.cuts || [];
+            const colors = visualDNA.recommendations.colors || [];
+            const products = visualDNA.recommendations.products || [];
+
+            let sectionsHtml = '';
+
+            // ARTHUR - Visagismo: Cortes + Acessórios + Dicas de finalização
+            if (agentKey === 'arthur') {
+                sectionsHtml += `
+                    <div class="rec-section">
+                        <div class="rec-section-title">
+                            <img src="https://images.unsplash.com/photo-1589310243389-96a5483213a8?w=30&h=30&fit=crop" alt="Cortes" />
+                            Cortes que Harmonizam com seu Rosto
+                        </div>
+                        ${renderCarousel(cuts, 'cuts')}
+                    </div>
+                    <div class="rec-section">
+                        <div class="rec-section-title">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=30&h=30&fit=crop" alt="Dicas" />
+                            Dicas de Finalização
+                        </div>
+                        <div style="font-size:12px;color:#666;padding:4px 0;">
+                            • Use pomada para texturizar<br>
+                            • Finalize com spray fixador<br>
+                            • Escova modeladora para volume
+                        </div>
+                    </div>
+                    <div class="rec-section">
+                        <div class="rec-section-title">
+                            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=30&h=30&fit=crop" alt="Acessórios" />
+                            Acessórios que Valorizam
+                        </div>
+                        <div style="font-size:12px;color:#666;padding:4px 0;">
+                            • Óculos redondos suavizam traços<br>
+                            • Brincos discretos equilibram<br>
+                            • Franja lateral alonga o rosto
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ISABELLA - Colorimetria: Cores + Paleta de Roupas + Maquiagem
+            else if (agentKey === 'isabella') {
+                sectionsHtml += `
+                    <div class="rec-section">
+                        <div class="rec-section-title">
+                            <img src="https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=30&h=30&fit=crop" alt="Cores" />
+                            Cores de Cabelo Ideais
+                        </div>
+                        ${renderCarousel(colors, 'colors')}
+                    </div>
+                    <div class="rec-section">
+                        <div class="rec-section-title">
+                            <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=30&h=30&fit=crop" alt="Roupas" />
+                            Paleta de Roupas
+                        </div>
+                        <div style="font-size:12px;color:#666;padding:4px 0;">
+                            ${visualDNA.color.undertone === 'quente' ? '• Terracota, mostarda, oliva' : '• Azul petróleo, cinza, rosa antigo'}<br>
+                            ${visualDNA.color.contrast === 'alto' ? '• Cores vibrantes e intensas' : '• Tons suaves e pastéis'}<br>
+                            • Evite cores que apagam seu tom de pele
+                        </div>
+                    </div>
+                    <div class="rec-section">
+                        <div class="rec-section-title">
+                            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=30&h=30&fit=crop" alt="Maquiagem" />
+                            Cores de Maquiagem
+                        </div>
+                        <div style="font-size:12px;color:#666;padding:4px 0;">
+                            ${visualDNA.color.undertone === 'quente' ? '• Batom terracota, sombra cobre' : '• Batom berry, sombra lilás'}<br>
+                            • Blush pêssego para pele quente<br>
+                            • Blush rosado para pele fria
+                        </div>
+                    </div>
+                `;
+            }
+
+            // RICARDO - Cortes: Cortes + Produtos + Manutenção
+            else if (agentKey === 'ricardo') {
+                sectionsHtml += `
+                    <div class="rec-section">
+                        <div class="rec-section-title">
+                            <img src="https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=30&h=30&fit=crop" alt="Cortes" />
+                            Cortes para sua Textura
+                        </div>
+                        ${renderCarousel(cuts, 'cuts')}
+                    </div>
+                    <div class="rec-section">
+                        <div class="rec-section-title">
+                            <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=30&h=30&fit=crop" alt="Produtos" />
+                            Produtos de Finalização
+                        </div>
+                        ${renderCarousel(products, 'products')}
+                    </div>
+                    <div class="rec-section">
+                        <div class="rec-section-title">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=30&h=30&fit=crop" alt="Manutenção" />
+                            Manutenção Sugerida
+                        </div>
+                        <div style="font-size:12px;color:#666;padding:4px 0;">
+                            ${visualDNA.hair.texture === 'crespo' ? '• Hidratação semanal' : '• Nutrição quinzenal'}<br>
+                            • Corte a cada ${visualDNA.preferences.comprimento === 'curto' ? '3-4 semanas' : '6-8 semanas'}<br>
+                            • Use protetor térmico ao secar
+                        </div>
+                    </div>
+                `;
+            }
+
             return `
                 <div class="recomendacoes-card">
                     <div class="header">
-                        <img class="card-image" src="${cardImage}" alt="${agent.name}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid #e8e4de;" />
+                        <img class="card-image" src="${cardImage}" alt="${agent.name}" />
                         <span class="title">✨ Recomendações Personalizadas</span>
                         <span class="badge">${agent.name}</span>
                     </div>
-                    ${cutsHtml}
-                    ${colorsHtml}
-                    ${productsHtml}
+                    ${sectionsHtml}
                 </div>
             `;
         }
 
-        // ============================================================
-        // 14. CARD DE RESUMO DA ANÁLISE
-        // ============================================================
         function createSummaryCard() {
             const face = visualDNA.face;
             const color = visualDNA.color;
@@ -1341,7 +1560,7 @@
         }
 
         // ============================================================
-        // 15. FLUXO DE CONVERSA
+        // 12. FLUXOS DOS ESPECIALISTAS
         // ============================================================
         function startWithAgent(agentKey) {
             const agent = agents[agentKey];
@@ -1363,9 +1582,6 @@
             }, 500);
         }
 
-        // ============================================================
-        // 15.1 HELENA ENGINE
-        // ============================================================
         async function helenaFlow() {
             const agent = agents.helena;
             if (!state.photoData) {
@@ -1395,9 +1611,6 @@
             renderOptions();
         }
 
-        // ============================================================
-        // 15.2 ARTHUR FLOW - DIAGNÓSTICO → QUIZ → DÚVIDAS + RECOMENDAÇÕES
-        // ============================================================
         async function arthurFlow() {
             const agent = agents.arthur;
             if (!state.photoData) {
@@ -1407,7 +1620,6 @@
                 return;
             }
             
-            // Se já passou por todos os passos
             if (state.specialistsCompleted.includes('arthur') && state.quizConcluido.arthur) {
                 const items = [
                     { label: 'Formato', value: visualDNA.face.shape.charAt(0).toUpperCase() + visualDNA.face.shape.slice(1), highlight: true },
@@ -1418,15 +1630,12 @@
                 addMessage(agent, cardHtml, 'received', null, false);
                 scrollToBottom();
                 
-                // Mostra recomendações
-                const recCard = createRecomendacoesCard(
-                    'arthur', 
-                    visualDNA.recommendations.cuts || [],
-                    visualDNA.recommendations.colors || [],
-                    visualDNA.recommendations.products || []
-                );
-                addMessage(agent, recCard, 'received', null, false);
-                scrollToBottom();
+                if (!visualDNA.recomendacoesExibidas) {
+                    const recCard = createRecomendacoesCard('arthur');
+                    addMessage(agent, recCard, 'received', null, false);
+                    scrollToBottom();
+                    visualDNA.recomendacoesExibidas = true;
+                }
                 
                 await sendMessage(agent, '✅ Diagnóstico e recomendações concluídos!');
                 await sendMessage(agent, 'Que tal esclarecer alguma dúvida?');
@@ -1441,7 +1650,6 @@
                 return;
             }
 
-            // 1. MOSTRA DIAGNÓSTICO
             if (!state.specialistsCompleted.includes('arthur')) {
                 await sendMessage(agent, 'Analisando as proporções do seu rosto...');
                 const img = new Image();
@@ -1462,20 +1670,15 @@
                 updateAgentBadges();
             }
 
-            // 2. APÓS DIAGNÓSTICO → OFERECE QUIZ
             if (!state.quizConcluido.arthur) {
                 await sendMessage(agent, '📝 Agora, responda algumas perguntas para refinarmos suas recomendações!');
                 await iniciarQuiz('arthur');
                 return;
             }
 
-            // 3. APÓS QUIZ → OFERECE DÚVIDAS + RECOMENDAÇÕES
             showSpecialistOptions('arthur');
         }
 
-        // ============================================================
-        // 15.3 ISABELLA FLOW
-        // ============================================================
         async function isabellaFlow() {
             const agent = agents.isabella;
             if (!state.photoData) {
@@ -1495,14 +1698,12 @@
                 addMessage(agent, cardHtml, 'received', null, false);
                 scrollToBottom();
                 
-                const recCard = createRecomendacoesCard(
-                    'isabella', 
-                    visualDNA.recommendations.cuts || [],
-                    visualDNA.recommendations.colors || [],
-                    visualDNA.recommendations.products || []
-                );
-                addMessage(agent, recCard, 'received', null, false);
-                scrollToBottom();
+                if (!visualDNA.recomendacoesExibidas) {
+                    const recCard = createRecomendacoesCard('isabella');
+                    addMessage(agent, recCard, 'received', null, false);
+                    scrollToBottom();
+                    visualDNA.recomendacoesExibidas = true;
+                }
                 
                 await sendMessage(agent, '✅ Diagnóstico e recomendações concluídos!');
                 await sendMessage(agent, 'Que tal esclarecer alguma dúvida?');
@@ -1546,9 +1747,6 @@
             showSpecialistOptions('isabella');
         }
 
-        // ============================================================
-        // 15.4 RICARDO FLOW
-        // ============================================================
         async function ricardoFlow() {
             const agent = agents.ricardo;
             if (!state.photoData) {
@@ -1568,14 +1766,12 @@
                 addMessage(agent, cardHtml, 'received', null, false);
                 scrollToBottom();
                 
-                const recCard = createRecomendacoesCard(
-                    'ricardo', 
-                    visualDNA.recommendations.cuts || [],
-                    visualDNA.recommendations.colors || [],
-                    visualDNA.recommendations.products || []
-                );
-                addMessage(agent, recCard, 'received', null, false);
-                scrollToBottom();
+                if (!visualDNA.recomendacoesExibidas) {
+                    const recCard = createRecomendacoesCard('ricardo');
+                    addMessage(agent, recCard, 'received', null, false);
+                    scrollToBottom();
+                    visualDNA.recomendacoesExibidas = true;
+                }
                 
                 await sendMessage(agent, '✅ Diagnóstico e recomendações concluídos!');
                 await sendMessage(agent, 'Que tal esclarecer alguma dúvida?');
@@ -1619,9 +1815,6 @@
             showSpecialistOptions('ricardo');
         }
 
-        // ============================================================
-        // 15.5 MOSTRAR OPÇÕES DO ESPECIALISTA
-        // ============================================================
         function showSpecialistOptions(agentKey) {
             const outros = ['arthur', 'isabella', 'ricardo'].filter(a => a !== agentKey);
             const emojis = { arthur: '👤', isabella: '👩', ricardo: '💇' };
@@ -1653,7 +1846,66 @@
         }
 
         // ============================================================
-        // 16. DÚVIDAS
+        // 13. QUIZ DE PREFERÊNCIAS
+        // ============================================================
+        async function iniciarQuiz(agentKey) {
+            let quiz;
+            if (agentKey === 'arthur') quiz = getQuizArthur();
+            else if (agentKey === 'isabella') quiz = getQuizIsabella();
+            else if (agentKey === 'ricardo') quiz = getQuizRicardo();
+            else return;
+            
+            state.quizAgent = agentKey;
+            state.quizIndex = 0;
+            await sendMessage(agents[agentKey], `📝 **${quiz.titulo}**`);
+            await sendMessage(agents[agentKey], quiz.introducao);
+            await fazerPerguntaQuiz();
+        }
+
+        async function fazerPerguntaQuiz() {
+            const agentKey = state.quizAgent;
+            const agent = agents[agentKey];
+            let quiz;
+            if (agentKey === 'arthur') quiz = getQuizArthur();
+            else if (agentKey === 'isabella') quiz = getQuizIsabella();
+            else if (agentKey === 'ricardo') quiz = getQuizRicardo();
+            else return;
+            
+            if (!agent || !quiz || state.quizIndex >= quiz.perguntas.length) {
+                state.quizConcluido[agentKey] = true;
+                await sendMessage(agent, '✅ Obrigado por responder! Suas preferências foram registradas. 🎉');
+                await sendMessage(agent, 'Agora vou gerar suas recomendações personalizadas...');
+                
+                hairosCore();
+                visualDNA.recomendacoesExibidas = false;
+                
+                const recCard = createRecomendacoesCard(agentKey);
+                addMessage(agent, recCard, 'received', null, false);
+                scrollToBottom();
+                visualDNA.recomendacoesExibidas = true;
+                
+                if (agentKey === 'arthur') await arthurFlow();
+                else if (agentKey === 'isabella') await isabellaFlow();
+                else if (agentKey === 'ricardo') await ricardoFlow();
+                return;
+            }
+            
+            const pergunta = quiz.perguntas[state.quizIndex];
+            let opcoesHtml = pergunta.opcoes.map((op, idx) => ({
+                label: `${String.fromCharCode(65 + idx)}) ${op}`,
+                value: `quiz_resp_${agentKey}_${state.quizIndex}_${idx}`,
+                destaque: true
+            }));
+            
+            await sendMessage(agent, `📝 **Pergunta ${state.quizIndex + 1} de ${quiz.perguntas.length}**`);
+            await sendMessage(agent, pergunta.pergunta);
+            
+            state.options = opcoesHtml;
+            renderOptions();
+        }
+
+        // ============================================================
+        // 14. DÚVIDAS
         // ============================================================
         async function iniciarModoDuvidas(agentKey) {
             const agent = agents[agentKey];
@@ -1686,72 +1938,7 @@
         }
 
         // ============================================================
-        // 17. QUIZ COMPLEMENTAR - COLETA DE PREFERÊNCIAS
-        // ============================================================
-        async function iniciarQuiz(agentKey) {
-            let quiz;
-            if (agentKey === 'arthur') quiz = getQuizArthur();
-            else if (agentKey === 'isabella') quiz = getQuizIsabella();
-            else if (agentKey === 'ricardo') quiz = getQuizRicardo();
-            else return;
-            
-            state.quizAgent = agentKey;
-            state.quizIndex = 0;
-            await sendMessage(agents[agentKey], `📝 **${quiz.titulo}**`);
-            await sendMessage(agents[agentKey], quiz.introducao);
-            await fazerPerguntaQuiz();
-        }
-
-        async function fazerPerguntaQuiz() {
-            const agentKey = state.quizAgent;
-            const agent = agents[agentKey];
-            let quiz;
-            if (agentKey === 'arthur') quiz = getQuizArthur();
-            else if (agentKey === 'isabella') quiz = getQuizIsabella();
-            else if (agentKey === 'ricardo') quiz = getQuizRicardo();
-            else return;
-            
-            if (!agent || !quiz || state.quizIndex >= quiz.perguntas.length) {
-                state.quizConcluido[agentKey] = true;
-                await sendMessage(agent, '✅ Obrigado por responder! Suas preferências foram registradas. 🎉');
-                await sendMessage(agent, 'Agora vou gerar suas recomendações personalizadas...');
-                
-                // Atualiza o visualDNA com as preferências e gera recomendações
-                hairosCore();
-                
-                // Mostra as recomendações em card
-                const recCard = createRecomendacoesCard(
-                    agentKey, 
-                    visualDNA.recommendations.cuts || [],
-                    visualDNA.recommendations.colors || [],
-                    visualDNA.recommendations.products || []
-                );
-                addMessage(agent, recCard, 'received', null, false);
-                scrollToBottom();
-                
-                // Volta para o fluxo do especialista
-                if (agentKey === 'arthur') await arthurFlow();
-                else if (agentKey === 'isabella') await isabellaFlow();
-                else if (agentKey === 'ricardo') await ricardoFlow();
-                return;
-            }
-            
-            const pergunta = quiz.perguntas[state.quizIndex];
-            let opcoesHtml = pergunta.opcoes.map((op, idx) => ({
-                label: `${String.fromCharCode(65 + idx)}) ${op}`,
-                value: `quiz_resp_${agentKey}_${state.quizIndex}_${idx}`,
-                destaque: true
-            }));
-            
-            await sendMessage(agent, `📝 **Pergunta ${state.quizIndex + 1} de ${quiz.perguntas.length}**`);
-            await sendMessage(agent, pergunta.pergunta);
-            
-            state.options = opcoesHtml;
-            renderOptions();
-        }
-
-        // ============================================================
-        // 18. LOOP INTERNO
+        // 15. LOOP INTERNO
         // ============================================================
         async function loopInterno(agentKey) {
             const agent = agents[agentKey];
@@ -1774,7 +1961,7 @@
         }
 
         // ============================================================
-        // 19. ANÁLISE COMPLETA
+        // 16. ANÁLISE COMPLETA
         // ============================================================
         async function performAnalysis() {
             const agent = agents.helena;
@@ -1807,14 +1994,13 @@
         }
 
         // ============================================================
-        // 20. HANDLE OPTION
+        // 17. HANDLE OPTION
         // ============================================================
         async function handleOption(value) {
             state.options = [];
             renderOptions();
             const agent = agents[state.currentAgent] || agents.helena;
 
-            // Resposta do quiz (coleta de preferências)
             if (value.startsWith('quiz_resp_')) {
                 const parts = value.split('_');
                 const agentKey = parts[2];
@@ -1829,62 +2015,33 @@
                 const pergunta = quiz.perguntas[index];
                 const opcaoEscolhida = pergunta.opcoes[escolha];
                 
-                // Salva a preferência do usuário baseada na escolha
                 await sendMessage(agent, `✅ Você escolheu: ${opcaoEscolhida}`);
                 
-                // Mapeia a escolha para as preferências do visualDNA
-                if (agentKey === 'arthur') {
-                    const prefMap = [
-                        'estiloPreferido', 'personalidade', 'objetivo', 'prioridade', 'estiloPreferido'
-                    ];
-                    const valorMap = {
-                        0: ['classico', 'confiante', 'profissional', 'pratico', 'classico'],
-                        1: ['moderno', 'criativo', 'social', 'estilo', 'moderno'],
-                        2: ['natural', 'discreto', 'cotidiano', 'versatil', 'natural'],
-                        3: ['ousado', 'versatil', 'autoestima', 'estilo', 'ousado']
-                    };
-                    const key = prefMap[index] || 'estiloPreferido';
-                    const val = valorMap[escolha] ? valorMap[escolha][0] : 'moderno';
-                    if (key === 'estiloPreferido') visualDNA.preferences.estiloPreferido = val;
-                    else if (key === 'personalidade') visualDNA.preferences.personalidade = val;
-                    else if (key === 'objetivo') visualDNA.preferences.objetivo = val;
-                    else if (key === 'prioridade') visualDNA.preferences.prioridade = val;
-                } else if (agentKey === 'isabella') {
-                    const prefMap = ['tomPreferido', 'intensidade', 'objetivo', 'tomPreferido', 'objetivo'];
-                    const valorMap = {
-                        0: ['quente', 'baixo', 'rejuvenescimento', 'quente', 'rejuvenescimento'],
-                        1: ['frio', 'medio', 'renovacao', 'frio', 'renovacao'],
-                        2: ['neutro', 'alto', 'expressao', 'neutro', 'expressao'],
-                        3: ['vibrante', 'vibrante', 'praticidade', 'vibrante', 'praticidade']
-                    };
-                    const key = prefMap[index] || 'tomPreferido';
-                    const val = valorMap[escolha] ? valorMap[escolha][0] : 'neutro';
-                    if (key === 'tomPreferido') visualDNA.preferences.tomPreferido = val;
-                    else if (key === 'intensidade') visualDNA.preferences.intensidade = val;
-                    else if (key === 'objetivo') visualDNA.preferences.objetivo = val;
-                } else if (agentKey === 'ricardo') {
-                    const prefMap = ['texturaPreferida', 'comprimento', 'manutencao', 'prioridade', 'objetivo'];
-                    const valorMap = {
-                        0: ['liso', 'curto', 'baixo', 'pratico', 'equilibrio'],
-                        1: ['ondulado', 'medio', 'medio', 'estilo', 'modernidade'],
-                        2: ['cacheado', 'longo', 'alto', 'versatil', 'conforto'],
-                        3: ['crespo', 'medio', 'alto', 'estilo', 'atitude']
-                    };
-                    const key = prefMap[index] || 'texturaPreferida';
-                    const val = valorMap[escolha] ? valorMap[escolha][0] : 'ondulado';
-                    if (key === 'texturaPreferida') visualDNA.preferences.texturaPreferida = val;
-                    else if (key === 'comprimento') visualDNA.preferences.comprimento = val;
-                    else if (key === 'manutencao') visualDNA.preferences.manutencao = val;
-                    else if (key === 'prioridade') visualDNA.preferences.prioridade = val;
-                    else if (key === 'objetivo') visualDNA.preferences.objetivo = val;
-                }
+                const prefMap = {
+                    'arthur': ['estiloPreferido', 'personalidade', 'objetivo', 'prioridade', 'estiloPreferido'],
+                    'isabella': ['tomPreferido', 'intensidade', 'objetivo', 'tomPreferido', 'objetivo'],
+                    'ricardo': ['texturaPreferida', 'comprimento', 'manutencao', 'prioridade', 'objetivo']
+                };
+                const keys = prefMap[agentKey] || ['estiloPreferido'];
+                const key = keys[index] || 'estiloPreferido';
+                const vals = ['classico', 'moderno', 'natural', 'ousado'];
+                const val = vals[escolha] || vals[0];
+                
+                if (key === 'estiloPreferido') visualDNA.preferences.estiloPreferido = val;
+                else if (key === 'personalidade') visualDNA.preferences.personalidade = val;
+                else if (key === 'objetivo') visualDNA.preferences.objetivo = val;
+                else if (key === 'prioridade') visualDNA.preferences.prioridade = val;
+                else if (key === 'tomPreferido') visualDNA.preferences.tomPreferido = val;
+                else if (key === 'intensidade') visualDNA.preferences.intensidade = val;
+                else if (key === 'texturaPreferida') visualDNA.preferences.texturaPreferida = val;
+                else if (key === 'comprimento') visualDNA.preferences.comprimento = val;
+                else if (key === 'manutencao') visualDNA.preferences.manutencao = val;
                 
                 state.quizIndex++;
                 await fazerPerguntaQuiz();
                 return;
             }
 
-            // Quiz concluído (botão verde)
             if (value.startsWith('quiz_concluido_')) {
                 const agentKey = value.replace('quiz_concluido_', '');
                 await sendMessage(agent, '✅ Suas preferências já foram registradas!');
@@ -1892,14 +2049,12 @@
                 return;
             }
 
-            // Iniciar quiz
             if (value.startsWith('iniciar_quiz_')) {
                 const agentKey = value.replace('iniciar_quiz_', '');
                 await iniciarQuiz(agentKey);
                 return;
             }
 
-            // Dúvidas
             if (value.startsWith('duvidas_')) {
                 const agentKey = value.replace('duvidas_', '');
                 await iniciarModoDuvidas(agentKey);
@@ -1918,7 +2073,6 @@
                 return;
             }
 
-            // Navegação
             if (value === 'arthur' || value === 'isabella' || value === 'ricardo' || value === 'helena') {
                 startWithAgent(value);
                 return;
@@ -1937,7 +2091,7 @@
         }
 
         // ============================================================
-        // 21. RESULTADO FINAL
+        // 18. RESULTADO FINAL
         // ============================================================
         function showResultPage() {
             if (!visualDNA.isComplete) hairosCore();
@@ -1966,7 +2120,7 @@
             cuts.slice(0, 5).forEach(cut => {
                 const imgUrl = cut.image || 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=400&h=400&fit=crop';
                 cutsHtml += `<div class="carousel-item" onclick="openModal('${imgUrl}', '${cut.name} - ${cut.style}')">
-                    <img src="${imgUrl}" alt="${cut.name}" />
+                    <img src="${imgUrl}" alt="${cut.name}" loading="lazy" />
                     <div class="name">${cut.name}</div>
                     <div class="desc">${cut.style}</div>
                     <div class="badge">${cut.origin || 'Internacional'}</div>
@@ -1980,7 +2134,7 @@
             colors.slice(0, 5).forEach(color => {
                 const imgUrl = color.image || 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=400&h=400&fit=crop';
                 colorsHtml += `<div class="carousel-item" onclick="openModal('${imgUrl}', '${color.name}')">
-                    <img src="${imgUrl}" alt="${color.name}" />
+                    <img src="${imgUrl}" alt="${color.name}" loading="lazy" />
                     <div class="name">${color.name}</div>
                     <div class="desc">${color.category || ''}</div>
                 </div>`;
@@ -1992,7 +2146,7 @@
             products.slice(0, 5).forEach(product => {
                 const imgUrl = product.image || 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=200&h=200&fit=crop';
                 productsHtml += `<div class="carousel-item" onclick="openModal('${imgUrl}', '${product.name}')">
-                    <img src="${imgUrl}" alt="${product.name}" />
+                    <img src="${imgUrl}" alt="${product.name}" loading="lazy" />
                     <div class="name">${product.name}</div>
                     <div class="desc">${product.purpose || ''}</div>
                 </div>`;
@@ -2001,7 +2155,7 @@
         }
 
         // ============================================================
-        // 22. FUNÇÕES AUXILIARES
+        // 19. FUNÇÕES AUXILIARES
         // ============================================================
         function openModal(imageSrc, caption) {
             modalImage.src = imageSrc || 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=400&h=400&fit=crop';
@@ -2056,6 +2210,7 @@
             visualDNA.style = { profileName: null, compatibility: 0, topStyles: [] };
             visualDNA.recommendations = { cuts: [], colors: [], products: [] };
             visualDNA.isComplete = false;
+            visualDNA.recomendacoesExibidas = false;
             goToLanding();
             setTimeout(startApp, 300);
         }
@@ -2086,7 +2241,7 @@
         }
 
         // ============================================================
-        // 23. UPLOAD DE FOTO
+        // 20. UPLOAD DE FOTO
         // ============================================================
         async function handlePhotoUpload(event) {
             const file = event.target.files[0];
@@ -2106,12 +2261,12 @@
         fileInput.addEventListener('change', handlePhotoUpload);
         showLanding();
 
-        console.log('🧬 HairOS Studio - FLUXO CORRETO');
-        console.log('✅ DIAGNÓSTICO → QUIZ (PREFERÊNCIAS) → RECOMENDAÇÕES → DÚVIDAS');
-        console.log('✅ Quiz coleta preferências do usuário (não é de certo/errado)');
-        console.log('✅ Recomendações em card com cortes, cores e produtos');
-        console.log('✅ Botão "Preferências registradas!" fica VERDE');
-        console.log('✅ Loop automático entre especialistas');
+        console.log('🧬 HairOS Studio - PERSONALIZADO COM IMAGENS');
+        console.log('✅ Cada especialista exibe recomendações únicas');
+        console.log('✅ Arthur: Cortes + Dicas de finalização + Acessórios');
+        console.log('✅ Isabella: Cores + Paleta de roupas + Maquiagem');
+        console.log('✅ Ricardo: Cortes + Produtos + Manutenção');
+        console.log('✅ Todas as imagens são reais e clicáveis');
     </script>
 </body>
 </html>
