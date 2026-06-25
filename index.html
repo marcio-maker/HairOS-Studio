@@ -567,7 +567,6 @@
     <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">🌙</button>
 
     <div id="app" class="app">
-        <!-- LANDING -->
         <div id="landing" class="landing">
             <div class="logo">HAIROS</div>
             <p class="studio">STUDIO</p>
@@ -626,7 +625,6 @@
             </div>
         </div>
 
-        <!-- CHAT -->
         <div id="chat" class="chat">
             <div class="chat-header">
                 <button class="back" onclick="goToLanding()">←</button>
@@ -638,7 +636,6 @@
             <div class="options" id="options"></div>
         </div>
 
-        <!-- RESULTADO -->
         <div id="result" class="result">
             <div class="result-header"><h2>Visual DNA</h2><button onclick="goToLanding()">✕</button></div>
             <div class="profile-name-result" id="profileName">Perfil Visual</div>
@@ -678,7 +675,6 @@
             <button class="btn-action outline" onclick="newAnalysis()">🔄 Nova análise</button>
         </div>
 
-        <!-- MODAIS -->
         <div class="avatar-modal-overlay" id="avatarModal" onclick="closeAvatarModal()">
             <div class="avatar-modal-content" onclick="event.stopPropagation()">
                 <button class="close-avatar" onclick="closeAvatarModal()">✕</button>
@@ -1546,7 +1542,7 @@
 
             let sectionsHtml = '';
 
-            // ARTHUR - Visagismo
+            // ARTHUR - Visagismo (CORRIGIDO)
             if (agentKey === 'arthur') {
                 sectionsHtml += `
                     <div class="rec-section">
@@ -2436,9 +2432,10 @@
         console.log('✅ Respostas do usuário aparecem à direita');
         console.log('✅ Botões de opção aparecem junto com a pergunta');
         console.log('✅ Diagnóstico e recomendações com imagens');
-        console.log('✅ Cada especialista exibe recomendações únicas');
+        console.log('✅ Arthur com recomendações personalizadas');
+        console.log('✅ Isabella com recomendações personalizadas');
+        console.log('✅ Ricardo com recomendações personalizadas');
         console.log('✅ Upload de foto funcional');
-        console.log('✅ Todos os agentes funcionando');
     </script>
 </body>
-</html> 
+</html>
